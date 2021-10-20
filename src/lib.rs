@@ -28,6 +28,4 @@ mod mem_intern;
 #[cfg(feature = "zvec")]      pub mod zvec;
 
 #[cfg(feature = "mem")]
-pub mod mem {
-    pub use crate::mem_intern::*;
-}
+pub mod mem { pub use crate::mem_intern::*; }
