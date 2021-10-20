@@ -1,0 +1,6 @@
+/target
+Cargo.lock
+
+# 傻逼 IDEA 能不能不要老问我要不要添加你那个破 .idea ，要不要添加你心里没点 BTree 吗，操你妈
+.idea
+
