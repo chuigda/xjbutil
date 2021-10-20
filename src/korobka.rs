@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::ptr::NonNull;
 
-use crate::mem::{leak_as_nonnull, reclaim_as_boxed};
+use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
 
 #[repr(transparent)]
 pub struct Korobka<T>(NonNull<T>, PhantomData<T>);
