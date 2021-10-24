@@ -1,3 +1,5 @@
+/// A special vector lets you soundly read garbage data
+
 use std::alloc::{Layout, alloc_zeroed, dealloc};
 use std::intrinsics::copy_nonoverlapping;
 use std::ops::{Deref, DerefMut, Index, IndexMut};
@@ -7,6 +9,7 @@ use std::slice::SliceIndex;
 
 use unchecked_unwrap::UncheckedUnwrap;
 
+/// Types which can be simply initialized with zero.
 pub unsafe trait ZeroInit : Copy {}
 
 struct ZeroRawVec<T: ZeroInit> {
@@ -47,6 +50,10 @@ impl<T: ZeroInit> Drop for ZeroRawVec<T> {
     }
 }
 
+/// A vector for soundly reading garbage data
+///
+/// Compared to [`std::vec::Vec`], this vector does not re-initialize spaces previously used when
+/// preforming `resize` operations or so. This is useful when something is garbage insensitive.
 pub struct ZeroVec<T: ZeroInit> {
     raw: ZeroRawVec<T>,
     len: usize
