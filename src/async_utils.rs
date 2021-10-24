@@ -1,4 +1,4 @@
-//! # `async_utils.rs`: Re-exports asynchronous structures from `tokio`, `async-std` and `futures`
+//! Re-exports asynchronous structures from `tokio`, `async-std`, `pollster` and `futures`
 
 pub use futures::future::join_all;
 
@@ -27,6 +27,12 @@ use std::time::Duration;
 use std::future::Future;
 
 #[cfg(feature = "async-astd")]
+/// Just block on your `Future`
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// async_std::task::block_on(fut);
+/// ```
 pub fn block_on_future<F, R>(fut: F) -> R
     where F: Future<Output=R> + 'static
 {
@@ -34,6 +40,16 @@ pub fn block_on_future<F, R>(fut: F) -> R
 }
 
 #[cfg(feature = "async-tokio")]
+/// Just block on your `Future`
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// tokio::runtime::Builder::new_current_thread()
+///     .enable_time()
+///     .build()
+///     .unwrap()
+///     .block_on(fut);
+/// ```
 pub fn block_on_future<F, R>(fut: F) -> R
     where F: Future<Output=R> + 'static
 {
@@ -41,6 +57,12 @@ pub fn block_on_future<F, R>(fut: F) -> R
 }
 
 #[cfg(feature = "async-pollster")]
+/// Just block on your `Future`
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// pollster::block_on(fut);
+/// ```
 pub fn block_on_future<F, R>(fut: F) -> R
     where F: Future<Output=R> + 'static
 {
@@ -48,11 +70,23 @@ pub fn block_on_future<F, R>(fut: F) -> R
 }
 
 #[cfg(feature = "async-tokio")]
+/// Just sleep for a while
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// tokio::time::sleep(duration).await
+/// ```
 pub async fn testing_sleep(duration: Duration) {
     tokio::time::sleep(duration).await
 }
 
 #[cfg(feature = "async-astd")]
+/// Just sleep for a while
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// async_std::task::sleep(duration).await
+/// ```
 pub async fn testing_sleep(duration: Duration) {
     async_std::task::sleep(duration).await
 }

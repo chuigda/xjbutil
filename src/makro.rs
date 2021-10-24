@@ -1,3 +1,5 @@
+//! Some potentially useful macros
+
 #[cfg(feature = "std-ext")]
 #[macro_export] macro_rules! boxed_slice {
     () => {

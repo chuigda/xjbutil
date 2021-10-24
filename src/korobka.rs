@@ -1,3 +1,7 @@
+//! Customized box structure for avoiding certain `std::boxed::Box` issues
+//!
+//! See <https://users.rust-lang.org/t/suspicious-undefined-hehaviour-report-about-stacked-borrows/62633/5>
+
 use std::borrow::Borrow;
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
@@ -6,6 +10,7 @@ use std::ptr::NonNull;
 
 use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
 
+/// The customized `Box` replacement
 #[repr(transparent)]
 pub struct Korobka<T>(NonNull<T>, PhantomData<T>);
 
@@ -21,6 +26,10 @@ impl<T> Korobka<T> {
         Self(leak_as_nonnull(Box::new(t)), PhantomData::default())
     }
 
+    #[deprecated(
+        since = "0.1.3",
+        note = "This method is in fact really unsafe, can be buggy under many circumstances"
+    )]
     pub fn cast<U>(self) -> Korobka<U> {
         Korobka(self.0.cast::<U>(), PhantomData::default())
     }

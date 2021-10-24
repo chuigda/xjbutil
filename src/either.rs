@@ -1,3 +1,9 @@
+//! A simple `Either` structure
+//!
+//! This structure is in effect isomorphic with `Result`, but does not have certain traits
+//! implemented. Personally I think this is the better choice for expressing something which is not
+//! really a `Result`.
+
 use std::fmt::{Debug, Formatter};
 
 pub enum Either<T1, T2> {

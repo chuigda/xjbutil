@@ -1,3 +1,5 @@
+//! RAII structure used for deferring execution
+
 pub struct Defer<F: Fn() + Send + 'static> {
     f: F
 }

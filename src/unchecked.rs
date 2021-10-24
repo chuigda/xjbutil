@@ -1,7 +1,9 @@
-//! # `unchecked`: Provides unchecked variant of `std::option::Option`
-//! The `UncheckedOption` is provided as an unsafe counterpart to `std::option::Option`, with
-//! no checks or guarantees. User must guarantee the correctness on themselves.
+//! Unchecked counterparts to standard library components
 
+/// Provides unchecked variant of `std::option::Option`
+///
+/// The `UncheckedOption` is provided as an unsafe counterpart to `std::option::Option`, with
+/// no checks or guarantees. User must guarantee the correctness on themselves.
 #[cfg(debug_assertions)]
 pub struct UncheckedOption<T> {
     inner: Option<T>
@@ -27,7 +29,6 @@ impl<T> UncheckedOption<T> {
     /// `UncheckedOption`.
     ///
     /// # Safety
-    ///
     /// The `UncheckedOption` must really contains a `T`. If not, this function will panic in
     /// debug build, cause undefined behavior in release build.
     pub unsafe fn take(&mut self) -> T {
@@ -38,7 +39,6 @@ impl<T> UncheckedOption<T> {
     /// stored in `UncheckedOption`.
     ///
     /// # Safety
-    ///
     /// The `UncheckedOption` must really contains a `T`. If not, this function will panic in
     /// debug build, cause undefined behavior in release build.
     pub unsafe fn get_ref(&self) -> &T {
@@ -49,7 +49,6 @@ impl<T> UncheckedOption<T> {
     /// stored in `UncheckedOption`.
     ///
     /// # Safety
-    ///
     /// The `UncheckedOption` must really contains a `T`. If not, this function will panic in
     /// debug build, cause undefined behavior in release build.
     pub unsafe fn get_mut(&mut self) -> &mut T {
@@ -59,7 +58,6 @@ impl<T> UncheckedOption<T> {
     /// Assuming the `UncheckedOption` is empty, put a `T` object into it.
     ///
     /// # Safety
-    ///
     /// The `UncheckedOption` must be empty. If not, this function will panic in
     /// debug build, or cause potential resource leaks in release build. This function does not have
     /// UB, but still marked as `unsafe` in order to remind user.
@@ -118,8 +116,13 @@ pub trait UncheckedCellOps {
     /// Assume the Rust aliasing model invariants are hold, gets an immutable reference from given
     /// `UnsafeCell` without checking.
     ///
-    /// # Safety
+    /// This function is equivalent to the following code:
+    /// ```rust,ignore
+    /// let ptr: *const T = unsafe_cell.get() as *const T;
+    /// let imm_ref: &T = unsafe { &*ptr };
+    /// ```
     ///
+    /// # Safety
     /// If another mutable reference already exists, calling this function would immediately trigger
     /// undefined behavior.
     unsafe fn get_ref_unchecked(&self) -> &Self::Target;
@@ -127,8 +130,13 @@ pub trait UncheckedCellOps {
     /// Assume the Rust aliasing model invariants are hold, gets a mutable reference from given
     /// `UnsafeCell` without checking.
     ///
-    /// # Safety
+    /// This function is equivalent to the following code:
+    /// ```rust,ignore
+    /// let ptr: *mut T = unsafe_cell.get();
+    /// let mut_ref: &mut T = unsafe { &mut *ptr };
+    /// ```
     ///
+    /// # Safety
     /// If another mutable reference or immutable reference already exists, calling this function
     /// would immediately trigger undefined behavior.
     unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target;
@@ -146,11 +154,12 @@ impl<T> UncheckedCellOps for UnsafeCell<T> {
     }
 }
 
-
+/// Unchecked counterpart to `std::convert::From`
 pub trait UnsafeFrom<T> {
     unsafe fn unsafe_from(data: T) -> Self;
 }
 
+/// Unchecked counterpart to `std::convert::Into`
 pub trait UnsafeInto<T> {
     unsafe fn unsafe_into(self) -> T;
 }
