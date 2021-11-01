@@ -163,3 +163,95 @@ pub trait UnsafeFrom<T> {
 pub trait UnsafeInto<T> {
     unsafe fn unsafe_into(self) -> T;
 }
+
+pub struct UncheckedSend<T> { inner: T }
+
+unsafe impl<T> Send for UncheckedSend<T> {}
+
+impl<T> UncheckedSend<T> {
+    pub unsafe fn new(inner: T) -> Self {
+        Self { inner }
+    }
+
+    pub fn as_ref(&self) -> &T {
+        &self.inner
+    }
+
+    pub fn as_mut(&mut self) -> &mut T {
+        &mut self.inner
+    }
+
+    pub fn as_ptr(&self) -> *const T {
+        self.as_ref() as *const T
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.as_mut() as *mut T
+    }
+
+    pub fn into_inner(self) -> T {
+        self.inner
+    }
+}
+
+pub struct UncheckedSendSync<T> { inner: T }
+
+unsafe impl<T> Send for UncheckedSendSync<T> {}
+unsafe impl<T> Sync for UncheckedSendSync<T> {}
+
+impl<T> UncheckedSendSync<T> {
+    pub unsafe fn new(inner: T) -> Self {
+        Self { inner }
+    }
+
+    pub fn as_ref(&self) -> &T {
+        &self.inner
+    }
+
+    pub fn as_mut(&mut self) -> &mut T {
+        &mut self.inner
+    }
+
+    pub fn as_ptr(&self) -> *const T {
+        self.as_ref() as *const T
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.as_mut() as *mut T
+    }
+
+    pub fn into_inner(self) -> T {
+        self.inner
+    }
+}
+
+#[cfg(feature = "async")] use std::pin::Pin;
+#[cfg(feature = "async")] use std::task::{Context, Poll};
+#[cfg(feature = "async")] use futures::Future;
+
+#[cfg(feature = "async")]
+pub struct UncheckedSendFut<FUT> {
+    fut: Pin<Box<FUT>>
+}
+
+#[cfg(feature = "async")]
+impl<FUT> UncheckedSendFut<FUT> {
+    pub unsafe fn new(fut: FUT) -> Self {
+        Self { fut: Box::pin(fut) }
+    }
+}
+
+#[cfg(feature = "async")]
+impl<F, R> Future for UncheckedSendFut<F>
+    where F: Future<Output=R>
+{
+    type Output = R;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        Pin::as_mut(&mut self.fut).poll(cx)
+    }
+}
+
+#[cfg(feature = "async")] impl<F> Unpin for UncheckedSendFut<F> {}
+#[cfg(feature = "async")] unsafe impl<F> Send for UncheckedSendFut<F> {}
+#[cfg(feature = "async")] unsafe impl<F> Sync for UncheckedSendFut<F> {}
