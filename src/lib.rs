@@ -19,12 +19,12 @@ mod mem_intern;
 #[cfg(feature = "async")]     pub mod async_utils;
 #[cfg(feature = "defer")]     pub mod defer;
 #[cfg(feature = "either")]    pub mod either;
-#[cfg(feature = "fat_ptr")]   pub mod fat_ptr;
 #[cfg(feature = "korobka")]   pub mod korobka;
 #[cfg(feature = "makro")]     pub mod makro;
 #[cfg(feature = "std-ext")]   pub mod std_ext;
 #[cfg(feature = "unchecked")] pub mod unchecked;
 #[cfg(feature = "void")]      pub mod void;
+#[cfg(feature = "wide_ptr")]  pub mod wide_ptr;
 #[cfg(feature = "zvec")]      pub mod zvec;
 
 #[cfg(feature = "mem")]

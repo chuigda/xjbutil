@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.2"
+version = "0.2.0"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -24,13 +24,13 @@ enable-all = [
     "async",
     "defer",
     "either",
-    "fat_ptr",
     "korobka",
     "makro",
     "mem",
     "std-ext",
     "unchecked",
     "void",
+    "wide_ptr",
     "zvec"
 ]
 
@@ -40,11 +40,11 @@ async-pollster = ["pollster"]
 async-tokio = ["tokio"]
 defer = []
 either = []
-fat_ptr = []
 korobka = []
 makro = []
 mem = []
 std-ext = []
 unchecked = []
 void = []
+wide_ptr = []
 zvec = []

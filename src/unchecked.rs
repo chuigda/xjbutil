@@ -228,6 +228,7 @@ impl<T> UncheckedSendSync<T> {
 #[cfg(feature = "async")] use std::pin::Pin;
 #[cfg(feature = "async")] use std::task::{Context, Poll};
 #[cfg(feature = "async")] use futures::Future;
+use futures::FutureExt;
 
 #[cfg(feature = "async")]
 pub struct UncheckedSendFut<FUT> {
@@ -255,3 +256,30 @@ impl<F, R> Future for UncheckedSendFut<F>
 #[cfg(feature = "async")] impl<F> Unpin for UncheckedSendFut<F> {}
 #[cfg(feature = "async")] unsafe impl<F> Send for UncheckedSendFut<F> {}
 #[cfg(feature = "async")] unsafe impl<F> Sync for UncheckedSendFut<F> {}
+
+#[cfg(feature = "async")]
+pub struct UncheckedSendFutUnpin<FUT: Unpin> {
+    fut: FUT
+}
+
+#[cfg(feature = "async")]
+impl<FUT: Unpin> UncheckedSendFutUnpin<FUT> {
+    pub unsafe fn new(fut: FUT) -> Self {
+        Self { fut }
+    }
+}
+
+#[cfg(feature = "async")]
+impl<F, R> Future for UncheckedSendFutUnpin<F>
+    where F: Future<Output=R> + Unpin
+{
+    type Output = R;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        self.fut.poll_unpin(cx)
+    }
+}
+
+#[cfg(feature = "async")] impl<F: Unpin> Unpin for UncheckedSendFutUnpin<F> {}
+#[cfg(feature = "async")] unsafe impl<F: Unpin> Send for UncheckedSendFutUnpin<F> {}
+#[cfg(feature = "async")] unsafe impl<F: Unpin> Sync for UncheckedSendFutUnpin<F> {}
