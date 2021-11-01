@@ -26,14 +26,6 @@ impl<T> Korobka<T> {
         Self(leak_as_nonnull(Box::new(t)), PhantomData::default())
     }
 
-    #[deprecated(
-        since = "0.1.3",
-        note = "This method is in fact really unsafe, can be buggy under many circumstances"
-    )]
-    pub fn cast<U>(self) -> Korobka<U> {
-        Korobka(self.0.cast::<U>(), PhantomData::default())
-    }
-
     pub const fn as_ptr(&self) -> *const T {
         self.0.as_ptr() as *const _
     }
