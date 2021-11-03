@@ -44,3 +44,23 @@ use std::ptr::NonNull;
 {
     Box::from_raw(raw_ptr.as_ptr())
 }
+
+#[cfg(test)]
+mod test {
+    use std::ptr::NonNull;
+    use crate::mem_intern::{move_to_heap, reclaim_as_boxed, leak_as_nonnull };
+
+    #[test]
+    fn test_mem_intern() {
+        let origin: String = "114514".into();
+        let ptr: NonNull<String> = move_to_heap(origin);
+        let boxed: Box<String> = unsafe { reclaim_as_boxed(ptr) };
+        let ptr2 = leak_as_nonnull(boxed);
+
+        assert_eq!(ptr, ptr2);
+
+        let boxed: Box<String> = unsafe { reclaim_as_boxed(ptr2) };
+        drop(boxed);
+    }
+}
+

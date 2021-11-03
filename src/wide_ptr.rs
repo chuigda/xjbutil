@@ -51,7 +51,7 @@ mod test {
     }
 
     #[test]
-    fn test_fat_pointer_layout2() {
+    fn test_wide_pointer_layout2() {
         let slice: &[i32; 4] = &[114, 514, 1919, 810];
         let ptr: *const i32 = &slice[0] as *const i32;
         let wide_ptr: *const [i32] = slice as *const [i32];

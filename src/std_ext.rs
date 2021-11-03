@@ -58,3 +58,24 @@ impl<T> VecExt<T> for Vec<T> {
         self.into_boxed_slice().leak_as_nonnull()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use std::ptr::NonNull;
+
+    use crate::std_ext::{BoxedExt, VecExt};
+
+    #[test]
+    fn test() {
+        let v: Vec<i32> = vec![1, 2, 3, 4];
+        let slice_ptr: NonNull<[i32]> = v.into_slice_ptr();
+
+        let slice_ref: &[i32] = unsafe { slice_ptr.as_ref() };
+        assert_eq!(slice_ref.len(), 4);
+        assert_eq!(slice_ref[0], 1);
+        assert_eq!(slice_ref[3], 4);
+
+        let boxed: Box<[i32]> = unsafe { Box::reclaim(slice_ptr) };
+        drop(boxed);
+    }
+}

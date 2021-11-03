@@ -76,3 +76,22 @@ impl<T> PartialEq for Korobka<T> where T: PartialEq {
 }
 
 impl<T> Eq for Korobka<T> where T: Eq + PartialEq {}
+
+#[cfg(test)]
+mod test {
+    use std::ptr::NonNull;
+
+    use crate::korobka::Korobka;
+
+    #[test]
+    fn test_korobka() {
+        let korobka: Korobka<String> = Korobka::new("114514".into());
+        assert_eq!(korobka.as_ref(), "114514");
+
+        let ptr: NonNull<String> = korobka.as_nonnull();
+        let v: Vec<Korobka<String>> = vec![korobka];
+
+        eprintln!("v[0].as_ref() = {}", v[0].as_ref());
+        eprintln!("ptr.as_ref() = {}", unsafe { ptr.as_ref() });
+    }
+}

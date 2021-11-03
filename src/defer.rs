@@ -21,37 +21,37 @@ impl<F: FnOnce() + Send> Drop for Defer<F> {
     }
 }
 
-pub struct Defer2<FN, CAPTURE>
-    where FN: FnOnce(CAPTURE) + Send,
-          CAPTURE: Send
+pub struct Defer2<FN, CAP>
+    where FN: FnOnce(CAP) + Send,
+          CAP: Send
 {
     f: UncheckedOption<FN>,
-    capt: UncheckedOption<CAPTURE>
+    cap: UncheckedOption<CAP>
 }
 
-impl<FN, CAPTURE> Defer2<FN, CAPTURE>
-    where FN: FnOnce(CAPTURE) + Send,
-          CAPTURE: Send
+impl<FN, CAP> Defer2<FN, CAP>
+    where FN: FnOnce(CAP) + Send,
+          CAP: Send
 {
-    pub fn new(f: FN, capt: CAPTURE) -> Self {
+    pub fn new(f: FN, capt: CAP) -> Self {
         Self {
             f: UncheckedOption::new(f),
-            capt: UncheckedOption::new(capt)
+            cap: UncheckedOption::new(capt)
         }
     }
 
-    pub fn captured(&mut self) -> &mut CAPTURE {
-        unsafe { self.capt.get_mut() }
+    pub fn captured(&mut self) -> &mut CAP {
+        unsafe { self.cap.get_mut() }
     }
 }
 
-impl<FN, CAPTURE> Drop for Defer2<FN, CAPTURE>
-    where FN: FnOnce(CAPTURE) + Send,
-          CAPTURE: Send
+impl<FN, CAP> Drop for Defer2<FN, CAP>
+    where FN: FnOnce(CAP) + Send,
+          CAP: Send
 {
     fn drop(&mut self) {
         let f: FN = unsafe { self.f.take() };
-        let cap: CAPTURE = unsafe { self.capt.take() };
+        let cap: CAP = unsafe { self.cap.take() };
         (f)(cap);
     }
 }
