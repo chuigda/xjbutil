@@ -123,7 +123,7 @@ impl<T> UncheckedSendSync<T> {
 #[cfg(feature = "async")] use std::pin::Pin;
 #[cfg(feature = "async")] use std::task::{Context, Poll};
 #[cfg(feature = "async")] use futures::Future;
-use futures::FutureExt;
+#[cfg(feature = "async")] use futures::FutureExt;
 
 #[cfg(feature = "async")]
 pub struct UncheckedSendFut<FUT> {
