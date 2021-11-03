@@ -15,6 +15,7 @@ compile_error!(
 );
 
 mod mem_intern;
+mod unchecked_intern;
 
 #[cfg(feature = "async")]     pub mod async_utils;
 #[cfg(feature = "defer")]     pub mod defer;
