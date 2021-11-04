@@ -1,5 +1,8 @@
 //! Re-exports asynchronous structures from `tokio`, `async-std`, `pollster` and `futures`
 
+#[cfg(feature = "async-pollster")]
+mod pollster_utils;
+
 pub use futures::future::join_all;
 
 #[cfg(feature = "async-tokio")]
@@ -23,7 +26,9 @@ pub use async_std::{
 #[cfg(feature = "async-astd")]
 pub use futures::channel::oneshot;
 
-use std::time::Duration;
+#[cfg(feature = "async-pollster")]
+pub use crate::async_utils::pollster_utils::{testing_sleep, yield_now};
+
 use std::future::Future;
 
 #[cfg(feature = "async-astd")]
@@ -76,7 +81,7 @@ pub fn block_on_future<F, R>(fut: F) -> R
 /// ```rust,ignore
 /// tokio::time::sleep(duration).await
 /// ```
-pub async fn testing_sleep(duration: Duration) {
+pub async fn testing_sleep(duration: std::time::Duration) {
     tokio::time::sleep(duration).await
 }
 
@@ -87,6 +92,23 @@ pub async fn testing_sleep(duration: Duration) {
 /// ```rust,ignore
 /// async_std::task::sleep(duration).await
 /// ```
-pub async fn testing_sleep(duration: Duration) {
+pub async fn testing_sleep(duration: std::time::Duration) {
     async_std::task::sleep(duration).await
+}
+
+#[cfg(test)]
+mod test {
+    use std::time::Duration;
+    use crate::async_utils::{block_on_future, testing_sleep, yield_now};
+
+    #[test]
+    fn test_basic_rt() {
+        async fn test_inner() {
+            testing_sleep(Duration::from_secs(1)).await;
+            yield_now().await;
+            testing_sleep(Duration::from_secs(1)).await;
+        }
+
+        block_on_future(test_inner())
+    }
 }

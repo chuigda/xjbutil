@@ -33,24 +33,42 @@
     };
 }
 
-#[cfg(all(feature = "defer", test))]
+#[cfg(test)]
 mod test {
+    #[test]
+    fn test_boxed_slice() {
+        let boxed_slice: Box<[i32]> = boxed_slice![1, 2, 3, 4];
+        assert_eq!(boxed_slice.len(), 4);
+        assert_eq!(boxed_slice[0], 1);
+        assert_eq!(boxed_slice[3], 4);
+
+        let another_boxed_slice: Box<[i32]> = boxed_slice![];
+        assert_eq!(another_boxed_slice.len(), 0);
+    }
+}
+
+#[cfg(all(feature = "defer", test))]
+mod test_defer {
     #[test]
     fn test_defer() {
         let x = "114".to_string();
-        let y = "514".to_string();
+        let y = "1919810".to_string();
         let z = "1919810".to_string();
 
-        defer!(
-            |(x, y)| eprintln!("first defer: {}{}", x, y),
-            x, y
-        );
-        defer!(
-            |(x, z)| eprintln!("second defer: {}{}", x, z),
-            x, z
-        );
-        defer!(|| eprintln!("1919810"));
+        defer!(|| {
+            eprintln!("happy birthday!");
+        });
 
-        x.push_str(", ");
+        defer!(|(x, y)| {
+            assert_eq!(x, "114514");
+            assert_eq!(y, "1919810");
+        }, x, y);
+
+        defer!(|z| {
+            assert_eq!(z, "893");
+        }, z);
+
+        *z = "893".into();
+        x.push_str("514");
     }
 }

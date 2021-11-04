@@ -30,3 +30,28 @@ impl<E1, E2> Debug for Either<E1, E2>
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::either::Either;
+
+    #[test]
+    fn test_either() {
+        let e1: Either<i32, String> = Either::Left(114);
+        let e2: Either<i32, String> = Either::Right("514".to_string());
+
+        eprintln!("e1 = {:?}, e2 = {:?}", e1, e2);
+
+        if let Either::Left(num) = e1 {
+            assert_eq!(num, 114);
+        } else {
+            unreachable!();
+        }
+
+        if let Either::Right(s) = e2 {
+            assert_eq!(s, "514");
+        } else {
+            unreachable!();
+        }
+    }
+}
