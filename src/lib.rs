@@ -1,12 +1,4 @@
 #[cfg(all(
-    any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio"),
-    not(feature = "async")
-))]
-compile_error!(
-    "appointing concrete async implementation without appointing `async` feature is meaningless"
-);
-
-#[cfg(all(
     feature = "async",
     not(any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio"))
 ))]
@@ -17,7 +9,10 @@ compile_error!(
 mod mem_intern;
 mod unchecked_intern;
 
-#[cfg(feature = "async")]     pub mod async_utils;
+#[cfg(all(
+    feature = "async",
+    any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio")))
+] pub mod async_utils;
 #[cfg(feature = "defer")]     pub mod defer;
 #[cfg(feature = "either")]    pub mod either;
 #[cfg(feature = "korobka")]   pub mod korobka;

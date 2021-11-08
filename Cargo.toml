@@ -1,13 +1,12 @@
 [package]
 name = "xjbutil"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
 readme = "./README.md"
 repository = "https://github.com/Pr47/xjbutil"
 license = "MIT"
-resolver = "2"
 
 [dependencies]
 unchecked_unwrap = "3"
