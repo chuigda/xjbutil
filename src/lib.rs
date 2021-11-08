@@ -1,9 +1,9 @@
 #[cfg(all(
-    feature = "async",
-    not(any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio"))
+any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio"),
+not(feature = "async")
 ))]
 compile_error!(
-    "appointing `async` feature without choosing concrete async implementation is meaningless"
+    "appointing concrete async implementation without appointing `async` feature is meaningless"
 );
 
 mod mem_intern;
