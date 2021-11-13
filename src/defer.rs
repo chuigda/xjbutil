@@ -3,35 +3,35 @@
 use crate::unchecked_intern::UncheckedOption;
 
 pub struct Defer<F>
-    where F: FnOnce() + Send
+    where F: FnOnce()
 {
     f: UncheckedOption<F>
 }
 
-impl<F: FnOnce() + Send> Defer<F> {
+impl<F: FnOnce()> Defer<F> {
     pub fn new(f: F) -> Self {
         Self { f: UncheckedOption::new(f) }
     }
 }
 
-impl<F: FnOnce() + Send> Drop for Defer<F> {
+impl<F: FnOnce()> Drop for Defer<F> {
     fn drop(&mut self) {
         let f: F = unsafe { self.f.take() };
         (f)()
     }
 }
 
+unsafe impl<F> Send for Defer<F> where F: FnOnce() + Send {}
+
 pub struct Defer2<FN, CAP>
-    where FN: FnOnce(CAP) + Send,
-          CAP: Send
+    where FN: FnOnce(CAP)
 {
     f: UncheckedOption<FN>,
     cap: UncheckedOption<CAP>
 }
 
 impl<FN, CAP> Defer2<FN, CAP>
-    where FN: FnOnce(CAP) + Send,
-          CAP: Send
+    where FN: FnOnce(CAP)
 {
     pub fn new(f: FN, capt: CAP) -> Self {
         Self {
@@ -46,8 +46,7 @@ impl<FN, CAP> Defer2<FN, CAP>
 }
 
 impl<FN, CAP> Drop for Defer2<FN, CAP>
-    where FN: FnOnce(CAP) + Send,
-          CAP: Send
+    where FN: FnOnce(CAP)
 {
     fn drop(&mut self) {
         let f: FN = unsafe { self.f.take() };
@@ -55,3 +54,5 @@ impl<FN, CAP> Drop for Defer2<FN, CAP>
         (f)(cap);
     }
 }
+
+unsafe impl<F, CAP> Send for Defer2<F, CAP> where F: FnOnce(CAP) + Send, CAP: Send {}
