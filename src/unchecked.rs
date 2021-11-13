@@ -120,10 +120,9 @@ impl<T> UncheckedSendSync<T> {
     }
 }
 
+#[cfg(feature = "async")] use std::future::Future;
 #[cfg(feature = "async")] use std::pin::Pin;
 #[cfg(feature = "async")] use std::task::{Context, Poll};
-#[cfg(feature = "async")] use futures::Future;
-#[cfg(feature = "async")] use futures::FutureExt;
 
 #[cfg(feature = "async")]
 pub struct UncheckedSendFut<FUT> {
@@ -171,7 +170,7 @@ impl<F, R> Future for UncheckedSendFutUnpin<F>
     type Output = R;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        self.fut.poll_unpin(cx)
+        Pin::new(&mut self.fut).poll(cx)
     }
 }
 

@@ -2,6 +2,12 @@
 all:
 	echo "Please, run something else"
 
+.PHONY: test_all
+test_all: test_all_no_miri_async miri_test_async_tokio miri_test_async_astd miri_test_async_pollster
+
+.PHONY: test_all_no_miri_async
+test_all_no_miri_async: test test_async_tokio test_async_astd test_async_pollster miri_test
+
 .PHONY: test
 test:
 	cargo test --package xjbutil -- --skip async_utils::test
