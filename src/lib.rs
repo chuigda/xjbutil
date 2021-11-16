@@ -14,6 +14,7 @@ mod unchecked_intern;
     any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio")))
 ] pub mod async_utils;
 #[cfg(feature = "defer")]     pub mod defer;
+#[cfg(feature = "display2")]  pub mod display2;
 #[cfg(feature = "either")]    pub mod either;
 #[cfg(feature = "korobka")]   pub mod korobka;
 #[cfg(feature = "makro")]     pub mod makro;

@@ -33,6 +33,13 @@
     };
 }
 
+#[cfg(feature = "display2")]
+#[macro_export] macro_rules! display2 {
+    ($input:expr) => {
+        $crate::display2::Display2Wrapper::new($input)
+    };
+}
+
 #[cfg(test)]
 mod test {
     #[test]
@@ -44,6 +51,25 @@ mod test {
 
         let another_boxed_slice: Box<[i32]> = boxed_slice![];
         assert_eq!(another_boxed_slice.len(), 0);
+    }
+}
+
+#[cfg(all(feature = "display2", test))]
+mod test_display2 {
+    use std::fmt::Formatter;
+    use crate::display2::Display2;
+
+    #[test]
+    fn test_display2() {
+        struct S { a: i32, b: i32 }
+
+        impl Display2 for S {
+            fn fmt2(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                write!(f, "Display2 S({}, {})", self.a, self.b)
+            }
+        }
+
+        println!("{}", display2!(&S {a: 1, b: 2}))
     }
 }
 

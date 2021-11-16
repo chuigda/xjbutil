@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -22,6 +22,7 @@ default = ["enable-all", "async-tokio"]
 enable-all = [
     "async",
     "defer",
+    "display2",
     "either",
     "korobka",
     "makro",
@@ -38,6 +39,7 @@ async-astd = ["async-std"]
 async-pollster = ["pollster"]
 async-tokio = ["tokio"]
 defer = []
+display2 = []
 either = []
 korobka = []
 makro = []
