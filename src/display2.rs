@@ -32,3 +32,13 @@ impl<'a, T: Display2> Display for Display2Wrapper<'a, T> {
         self.value.fmt2(fmt)
     }
 }
+
+pub trait ToString2 {
+    fn to_string2(&self) -> String;
+}
+
+impl<T: Display2> ToString2 for T {
+    fn to_string2(&self) -> String {
+        format!("{}", Display2Wrapper::new(self))
+    }
+}
