@@ -10,14 +10,14 @@ pub struct UncheckedOption<T> {
 #[cfg(debug_assertions)]
 impl<T> UncheckedOption<T> {
     /// Create an `UncheckedOption` containing given value `t`.
-    pub fn new(t: T) -> Self {
+    pub const fn new(t: T) -> Self {
         Self {
             inner: Some(t)
         }
     }
 
     /// Create an empty `UncheckedOption`
-    pub fn new_none() -> Self {
+    pub const fn new_none() -> Self {
         Self {
             inner: None
         }
@@ -75,13 +75,13 @@ pub struct UncheckedOption<T> {
 
 #[cfg(not(debug_assertions))]
 impl<T> UncheckedOption<T> {
-    pub fn new(t: T) -> Self {
+    pub const fn new(t: T) -> Self {
         Self {
             inner: MaybeUninit::new(t)
         }
     }
 
-    pub fn new_none() -> Self {
+    pub const fn new_none() -> Self {
         Self {
             inner: MaybeUninit::uninit()
         }

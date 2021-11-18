@@ -8,7 +8,7 @@ pub struct WidePointer {
 }
 
 impl WidePointer {
-    pub fn new(ptr: usize, trivia: usize) -> Self {
+    pub const fn new(ptr: usize, trivia: usize) -> Self {
         Self {
             ptr, trivia
         }
