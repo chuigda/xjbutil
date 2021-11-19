@@ -59,6 +59,37 @@ impl<T> VecExt<T> for Vec<T> {
     }
 }
 
+/// Extension on `std::result::Result` and `std::option::Option`
+///
+/// Exit program on on error silently without backtrace or so.
+pub trait ExpectSilentExt<T> {
+    fn expect_silent(self, message: &str) -> T;
+}
+
+impl<T, E> ExpectSilentExt<T> for Result<T, E> {
+    fn expect_silent(self, message: &str) -> T {
+        match self {
+            Ok(result) => result,
+            Err(_) => {
+                eprintln!("{}", message);
+                std::process::exit(-1);
+            }
+        }
+    }
+}
+
+impl<T> ExpectSilentExt<T> for Option<T> {
+    fn expect_silent(self, message: &str) -> T {
+        match self {
+            Some(result) => result,
+            None => {
+                eprintln!("{}", message);
+                std::process::exit(-1);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::ptr::NonNull;
