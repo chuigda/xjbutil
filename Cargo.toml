@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.4.6"
+version = "0.4.7"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -12,7 +12,7 @@ license = "MIT"
 unchecked_unwrap = "3"
 
 async-std = { optional = true, version = "1" }
-futures = { optional = true, version = "0.3" }
+futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
 pollster = { optional = true, version = "0.2" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
