@@ -125,21 +125,19 @@ impl<T> UncheckedSendSync<T> {
 #[cfg(feature = "async")] use std::task::{Context, Poll};
 
 #[cfg(feature = "async")]
-pub struct UncheckedSendFut<FUT> {
-    fut: Pin<Box<FUT>>
+pub struct UncheckedSendFut<R: 'static> {
+    fut: Pin<Box<dyn Future<Output = R>>>
 }
 
 #[cfg(feature = "async")]
-impl<FUT> UncheckedSendFut<FUT> {
-    pub unsafe fn new(fut: FUT) -> Self {
+impl<R: 'static> UncheckedSendFut<R> {
+    pub unsafe fn new(fut: impl Future<Output = R> + 'static) -> Self {
         Self { fut: Box::pin(fut) }
     }
 }
 
 #[cfg(feature = "async")]
-impl<F, R> Future for UncheckedSendFut<F>
-    where F: Future<Output=R>
-{
+impl<R: 'static> Future for UncheckedSendFut<R> {
     type Output = R;
 
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
@@ -147,9 +145,9 @@ impl<F, R> Future for UncheckedSendFut<F>
     }
 }
 
-#[cfg(feature = "async")] impl<F> Unpin for UncheckedSendFut<F> {}
-#[cfg(feature = "async")] unsafe impl<F> Send for UncheckedSendFut<F> {}
-#[cfg(feature = "async")] unsafe impl<F> Sync for UncheckedSendFut<F> {}
+#[cfg(feature = "async")] impl<R: 'static> Unpin for UncheckedSendFut<R> {}
+#[cfg(feature = "async")] unsafe impl<R: 'static> Send for UncheckedSendFut<R> {}
+#[cfg(feature = "async")] unsafe impl<R: 'static> Sync for UncheckedSendFut<R> {}
 
 #[cfg(feature = "async")]
 pub struct UncheckedSendFutUnpin<FUT: Unpin> {
