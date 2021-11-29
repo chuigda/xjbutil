@@ -1,6 +1,7 @@
 use std::alloc::{alloc, dealloc, Layout};
 use std::cell::UnsafeCell;
 use std::mem::{align_of, size_of};
+use std::ops::Deref;
 use std::ptr::copy_nonoverlapping;
 
 use crate::unchecked_intern::UncheckedCellOps;
@@ -124,6 +125,50 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
             }
         }
     }
+
+    pub fn make_from_iter<T, I, R>(&self, iterator: I, size: usize) -> &[T]
+        where T: Copy,
+              I: Iterator<Item = R>,
+              R: Deref<Target = T>
+    {
+        assert!(align_of::<T>() < ALIGN);
+
+        if size >= (DEBRIS_SIZE / 2) {
+            let free_block: FreeBlock<ALIGN> = FreeBlock::new(size);
+            let ptr: *mut u8 = free_block.as_mut_ptr();
+            unsafe { self.free_blocks.get_mut_ref_unchecked().push(free_block); }
+            let ptr: *mut T = ptr as _;
+            unsafe {
+                for (i, item) in iterator.enumerate() {
+                    ptr.add(i).write(*item);
+                }
+                std::slice::from_raw_parts(ptr, size)
+            }
+        } else {
+            let debris: &mut Vec<_> = unsafe { self.debris.get_mut_ref_unchecked() };
+            for debris in debris.iter_mut().rev() {
+                if debris.rest::<T>() >= size {
+                    let ptr: *mut T = unsafe { debris.allocate::<T>(size) };
+                    unsafe {
+                        for (i, item) in iterator.enumerate() {
+                            ptr.add(i).write(*item);
+                        }
+                        return std::slice::from_raw_parts(ptr, size);
+                    }
+                }
+            }
+
+            let mut new_debris: ArenaDebris<DEBRIS_SIZE, ALIGN> = ArenaDebris::new();
+            let ptr: *mut T = unsafe { new_debris.allocate::<T>(size) };
+            debris.push(new_debris);
+            unsafe {
+                for (i, item) in iterator.enumerate() {
+                    ptr.add(i).write(*item);
+                }
+                return std::slice::from_raw_parts(ptr, size);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -134,7 +179,7 @@ mod test {
     fn basic_test() {
         let arena: SliceArena<1024, 8> = SliceArena::new();
         let slice1: &[u8] = arena.make(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        let slice2: &[u16] = arena.make(&[1, 3, 1, 4, 2, 3, 3]);
+        let slice2: &[u16] = arena.make_from_iter([1u16, 3, 1, 4, 2, 3, 3].iter(), 7);
         assert_eq!(slice1, &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
         assert_eq!(slice2, &[1, 3, 1, 4, 2, 3, 3]);
     }
