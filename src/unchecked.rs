@@ -1,7 +1,5 @@
 //! Unchecked counterparts to standard library components
 
-use std::cell::UnsafeCell;
-
 pub use crate::unchecked_intern::{UncheckedCellOps, UncheckedOption};
 
 /// Unchecked counterpart to `std::convert::From`

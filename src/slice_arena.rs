@@ -1,5 +1,5 @@
 use std::alloc::{alloc, dealloc, Layout};
-use std::cell::{Cell, UnsafeCell};
+use std::cell::UnsafeCell;
 use std::mem::{align_of, size_of};
 use std::ptr::copy_nonoverlapping;
 
@@ -7,7 +7,7 @@ use crate::unchecked_intern::UncheckedCellOps;
 
 struct ArenaDebris<const DEBRIS_SIZE: usize, const ALIGN: usize> {
     mem: *mut u8,
-    usage: Cell<usize>
+    usage: usize
 }
 
 impl<const DEBRIS_SIZE: usize, const ALIGN: usize> ArenaDebris<DEBRIS_SIZE, ALIGN> {
@@ -18,19 +18,19 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> ArenaDebris<DEBRIS_SIZE, ALIG
             .unwrap();
         Self {
             mem: unsafe { alloc(layout) },
-            usage: Cell::new(0)
+            usage: 0,
         }
     }
 
     fn rest<T>(&self) -> usize {
-        (DEBRIS_SIZE - self.usage.get()) % size_of::<T>()
+        (DEBRIS_SIZE - self.usage) / size_of::<T>()
     }
 
-    unsafe fn allocate<T>(&self, count: usize) -> *mut T {
-        let ret: *mut T = self.mem.offset(self.usage.get() as isize) as *mut T;
+    unsafe fn allocate<T>(&mut self, count: usize) -> *mut T {
+        let ret: *mut T = self.mem.offset(self.usage as isize) as *mut T;
         let alloc_bytes: usize = count * size_of::<T>();
         let alloc_bytes: usize = alloc_bytes + ALIGN - alloc_bytes % ALIGN;
-        self.usage.set(self.usage.get() + alloc_bytes);
+        self.usage += alloc_bytes;
         ret
     }
 }
@@ -106,7 +106,7 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
         } else {
             let debris: &mut Vec<_> = unsafe { self.debris.get_mut_ref_unchecked() };
             for debris in debris.iter_mut().rev() {
-                if debris.rest() >= size {
+                if debris.rest::<T>() >= slice.len() {
                     let ptr: *mut T = unsafe { debris.allocate::<T>(slice.len()) };
                     unsafe {
                         copy_nonoverlapping(slice.as_ptr(), ptr, slice.len());
@@ -123,5 +123,19 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
                 return std::slice::from_raw_parts(ptr, slice.len());
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::slice_arena::SliceArena;
+
+    #[test]
+    fn basic_test() {
+        let arena: SliceArena<1024, 8> = SliceArena::new();
+        let slice1: &[u8] = arena.make(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        let slice2: &[u16] = arena.make(&[1, 3, 1, 4, 2, 3, 3]);
+        assert_eq!(slice1, &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        assert_eq!(slice2, &[1, 3, 1, 4, 2, 3, 3]);
     }
 }
