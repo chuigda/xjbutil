@@ -92,7 +92,7 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
     }
 
     pub fn make<T: Copy>(&self, slice: &[T]) -> &[T] {
-        assert!(align_of::<T>() < ALIGN);
+        assert!(align_of::<T>() <= ALIGN);
 
         let size: usize = slice.len() * size_of::<T>();
         if size >= (DEBRIS_SIZE / 2) {
@@ -135,7 +135,7 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
               I: Iterator<Item = R>,
               R: Deref<Target = T>
     {
-        assert!(align_of::<T>() < ALIGN);
+        assert!(align_of::<T>() <= ALIGN);
 
         if size >= (DEBRIS_SIZE / 2) {
             let free_block: FreeBlock<ALIGN> = FreeBlock::new(size);
