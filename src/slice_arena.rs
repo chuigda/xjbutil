@@ -1,0 +1,127 @@
+use std::alloc::{alloc, dealloc, Layout};
+use std::cell::{Cell, UnsafeCell};
+use std::mem::{align_of, size_of};
+use std::ptr::copy_nonoverlapping;
+
+use crate::unchecked_intern::UncheckedCellOps;
+
+struct ArenaDebris<const DEBRIS_SIZE: usize, const ALIGN: usize> {
+    mem: *mut u8,
+    usage: Cell<usize>
+}
+
+impl<const DEBRIS_SIZE: usize, const ALIGN: usize> ArenaDebris<DEBRIS_SIZE, ALIGN> {
+    fn new() -> Self {
+        let layout: Layout = Layout::array::<u8>(DEBRIS_SIZE)
+            .unwrap()
+            .align_to(ALIGN)
+            .unwrap();
+        Self {
+            mem: unsafe { alloc(layout) },
+            usage: Cell::new(0)
+        }
+    }
+
+    fn rest<T>(&self) -> usize {
+        (DEBRIS_SIZE - self.usage.get()) % size_of::<T>()
+    }
+
+    unsafe fn allocate<T>(&self, count: usize) -> *mut T {
+        let ret: *mut T = self.mem.offset(self.usage.get() as isize) as *mut T;
+        let alloc_bytes: usize = count * size_of::<T>();
+        let alloc_bytes: usize = alloc_bytes + ALIGN - alloc_bytes % ALIGN;
+        self.usage.set(self.usage.get() + alloc_bytes);
+        ret
+    }
+}
+
+impl<const DEBRIS_SIZE: usize, const ALIGN: usize> Drop for ArenaDebris<DEBRIS_SIZE, ALIGN> {
+    fn drop(&mut self) {
+        let layout: Layout = Layout::array::<u8>(DEBRIS_SIZE)
+            .unwrap()
+            .align_to(ALIGN)
+            .unwrap();
+        unsafe { dealloc(self.mem, layout); }
+    }
+}
+
+struct FreeBlock<const ALIGN: usize> {
+    size: usize,
+    mem: *mut u8
+}
+
+impl<const ALIGN: usize> FreeBlock<ALIGN> {
+    fn new(size: usize) -> Self {
+        let layout: Layout = Layout::array::<u8>(size)
+            .unwrap()
+            .align_to(ALIGN)
+            .unwrap();
+        Self {
+            size,
+            mem: unsafe { alloc(layout) }
+        }
+    }
+
+    fn as_mut_ptr<T>(&self) -> *mut T {
+        self.mem as _
+    }
+}
+
+impl<const ALIGN: usize> Drop for FreeBlock<ALIGN> {
+    fn drop(&mut self) {
+        let layout: Layout = Layout::array::<u8>(self.size)
+            .unwrap()
+            .align_to(ALIGN)
+            .unwrap();
+        unsafe { dealloc(self.mem, layout); }
+    }
+}
+
+pub struct SliceArena<const DEBRIS_SIZE: usize, const ALIGN: usize> {
+    debris: UnsafeCell<Vec<ArenaDebris<DEBRIS_SIZE, ALIGN>>>,
+    free_blocks: UnsafeCell<Vec<FreeBlock<ALIGN>>>,
+}
+
+impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN> {
+    pub fn new() -> Self {
+        Self {
+            debris: UnsafeCell::new(vec![ArenaDebris::new()]),
+            free_blocks: UnsafeCell::new(Vec::new())
+        }
+    }
+
+    pub fn make<T>(&self, slice: &[T]) -> &[T] {
+        assert!(align_of::<T>() < ALIGN);
+
+        let size: usize = slice.len() * size_of::<T>();
+        if size >= (DEBRIS_SIZE / 2) {
+            let free_block: FreeBlock<ALIGN> = FreeBlock::new(size);
+            let ptr: *mut u8 = free_block.as_mut_ptr();
+            unsafe { self.free_blocks.get_mut_ref_unchecked().push(free_block); }
+            let ptr: *mut T = ptr as _;
+            unsafe {
+                copy_nonoverlapping(slice.as_ptr(), ptr, slice.len());
+                std::slice::from_raw_parts(ptr, slice.len())
+            }
+        } else {
+            let debris: &mut Vec<_> = unsafe { self.debris.get_mut_ref_unchecked() };
+            for debris in debris.iter_mut().rev() {
+                if debris.rest() >= size {
+                    let ptr: *mut T = unsafe { debris.allocate::<T>(slice.len()) };
+                    unsafe {
+                        copy_nonoverlapping(slice.as_ptr(), ptr, slice.len());
+                        return std::slice::from_raw_parts(ptr, slice.len());
+                    }
+                }
+            }
+
+            let mut new_debris: ArenaDebris<DEBRIS_SIZE, ALIGN> = ArenaDebris::new();
+            let ptr: *mut T = unsafe { new_debris.allocate::<T>(slice.len()) };
+            debris.push(new_debris);
+            unsafe {
+                copy_nonoverlapping(slice.as_ptr(), ptr, slice.len());
+                return std::slice::from_raw_parts(ptr, slice.len());
+            }
+        }
+    }
+}

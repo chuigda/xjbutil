@@ -13,16 +13,17 @@ mod unchecked_intern;
     feature = "async",
     any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio")))
 ] pub mod async_utils;
-#[cfg(feature = "defer")]     pub mod defer;
-#[cfg(feature = "display2")]  pub mod display2;
-#[cfg(feature = "either")]    pub mod either;
-#[cfg(feature = "korobka")]   pub mod korobka;
-#[cfg(feature = "makro")]     pub mod makro;
-#[cfg(feature = "std-ext")]   pub mod std_ext;
-#[cfg(feature = "unchecked")] pub mod unchecked;
-#[cfg(feature = "void")]      pub mod void;
-#[cfg(feature = "wide_ptr")]  pub mod wide_ptr;
-#[cfg(feature = "zvec")]      pub mod zvec;
+#[cfg(feature = "defer")]       pub mod defer;
+#[cfg(feature = "display2")]    pub mod display2;
+#[cfg(feature = "either")]      pub mod either;
+#[cfg(feature = "korobka")]     pub mod korobka;
+#[cfg(feature = "makro")]       pub mod makro;
+#[cfg(feature = "slice-arena")] pub mod slice_arena;
+#[cfg(feature = "std-ext")]     pub mod std_ext;
+#[cfg(feature = "unchecked")]   pub mod unchecked;
+#[cfg(feature = "void")]        pub mod void;
+#[cfg(feature = "wide_ptr")]    pub mod wide_ptr;
+#[cfg(feature = "zvec")]        pub mod zvec;
 
 #[cfg(feature = "mem")]
 /// Some memory or pointer related operations

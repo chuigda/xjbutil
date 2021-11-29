@@ -2,52 +2,7 @@
 
 use std::cell::UnsafeCell;
 
-pub use crate::unchecked_intern::UncheckedOption;
-
-/// Unchecked operations added to `UnsafeCell`
-pub trait UncheckedCellOps {
-    type Target;
-
-    /// Assume the Rust aliasing model invariants are hold, gets an immutable reference from given
-    /// `UnsafeCell` without checking.
-    ///
-    /// This function is equivalent to the following code:
-    /// ```rust,ignore
-    /// let ptr: *const T = unsafe_cell.get() as *const T;
-    /// let imm_ref: &T = unsafe { &*ptr };
-    /// ```
-    ///
-    /// # Safety
-    /// If another mutable reference already exists, calling this function would immediately trigger
-    /// undefined behavior.
-    unsafe fn get_ref_unchecked(&self) -> &Self::Target;
-
-    /// Assume the Rust aliasing model invariants are hold, gets a mutable reference from given
-    /// `UnsafeCell` without checking.
-    ///
-    /// This function is equivalent to the following code:
-    /// ```rust,ignore
-    /// let ptr: *mut T = unsafe_cell.get();
-    /// let mut_ref: &mut T = unsafe { &mut *ptr };
-    /// ```
-    ///
-    /// # Safety
-    /// If another mutable reference or immutable reference already exists, calling this function
-    /// would immediately trigger undefined behavior.
-    unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target;
-}
-
-impl<T> UncheckedCellOps for UnsafeCell<T> {
-    type Target = T;
-
-    unsafe fn get_ref_unchecked(&self) -> &Self::Target {
-        &*(self.get() as *const T)
-    }
-
-    unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target {
-        &mut *self.get()
-    }
-}
+pub use crate::unchecked_intern::{UncheckedCellOps, UncheckedOption};
 
 /// Unchecked counterpart to `std::convert::From`
 pub trait UnsafeFrom<T> {

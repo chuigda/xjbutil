@@ -1,3 +1,5 @@
+use std::cell::UnsafeCell;
+
 /// Provides unchecked variant of `std::option::Option`
 ///
 /// The `UncheckedOption` is provided as an unsafe counterpart to `std::option::Option`, with
@@ -102,5 +104,50 @@ impl<T> UncheckedOption<T> {
 
     pub unsafe fn set(&mut self, t: T) {
         let _ = replace(&mut self.inner, MaybeUninit::new(t));
+    }
+}
+
+/// Unchecked operations added to `UnsafeCell`
+pub trait UncheckedCellOps {
+    type Target;
+
+    /// Assume the Rust aliasing model invariants are hold, gets an immutable reference from given
+    /// `UnsafeCell` without checking.
+    ///
+    /// This function is equivalent to the following code:
+    /// ```rust,ignore
+    /// let ptr: *const T = unsafe_cell.get() as *const T;
+    /// let imm_ref: &T = unsafe { &*ptr };
+    /// ```
+    ///
+    /// # Safety
+    /// If another mutable reference already exists, calling this function would immediately trigger
+    /// undefined behavior.
+    unsafe fn get_ref_unchecked(&self) -> &Self::Target;
+
+    /// Assume the Rust aliasing model invariants are hold, gets a mutable reference from given
+    /// `UnsafeCell` without checking.
+    ///
+    /// This function is equivalent to the following code:
+    /// ```rust,ignore
+    /// let ptr: *mut T = unsafe_cell.get();
+    /// let mut_ref: &mut T = unsafe { &mut *ptr };
+    /// ```
+    ///
+    /// # Safety
+    /// If another mutable reference or immutable reference already exists, calling this function
+    /// would immediately trigger undefined behavior.
+    unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target;
+}
+
+impl<T> UncheckedCellOps for UnsafeCell<T> {
+    type Target = T;
+
+    unsafe fn get_ref_unchecked(&self) -> &Self::Target {
+        &*(self.get() as *const T)
+    }
+
+    unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target {
+        &mut *self.get()
     }
 }
