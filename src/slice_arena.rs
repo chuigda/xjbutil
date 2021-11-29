@@ -90,7 +90,7 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
         }
     }
 
-    pub fn make<T>(&self, slice: &[T]) -> &[T] {
+    pub fn make<T: Copy>(&self, slice: &[T]) -> &[T] {
         assert!(align_of::<T>() < ALIGN);
 
         let size: usize = slice.len() * size_of::<T>();
