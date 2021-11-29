@@ -1,5 +1,6 @@
 //! Extensions to standard libraries
 
+use std::mem::transmute;
 use std::ptr::NonNull;
 
 use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
@@ -88,6 +89,10 @@ impl<T> ExpectSilentExt<T> for Option<T> {
             }
         }
     }
+}
+
+pub unsafe fn extend_lifetime<'a, T: ?Sized>(src: &'a T) -> &'static T {
+    transmute::<&'a T, &'static T>(src)
 }
 
 #[cfg(test)]

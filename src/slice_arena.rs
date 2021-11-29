@@ -126,6 +126,10 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
         }
     }
 
+    pub unsafe fn unsafe_make<T: Copy>(&self, slice: &[T]) -> &'static [T] {
+        std::mem::transmute::<&[T], &'static [T]>(self.make(slice))
+    }
+
     pub fn make_from_iter<T, I, R>(&self, iterator: I, size: usize) -> &[T]
         where T: Copy,
               I: Iterator<Item = R>,
@@ -168,6 +172,14 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> SliceArena<DEBRIS_SIZE, ALIGN
                 return std::slice::from_raw_parts(ptr, size);
             }
         }
+    }
+
+    pub unsafe fn unsafe_make_from_iter<T, I, R>(&self, iterator: I, size: usize) -> &'static [T]
+        where T: Copy,
+              I: Iterator<Item = R>,
+              R: Deref<Target = T>
+    {
+        std::mem::transmute::<&[T], &'static [T]>(self.make_from_iter(iterator, size))
     }
 }
 
