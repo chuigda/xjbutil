@@ -12,20 +12,22 @@ use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
 
 /// The customized `Box` replacement
 #[repr(transparent)]
-pub struct Korobka<T>(NonNull<T>, PhantomData<T>);
+pub struct Korobka<T: ?Sized>(NonNull<T>, PhantomData<T>);
 
-impl<T> Drop for Korobka<T> {
+impl<T: ?Sized> Drop for Korobka<T> {
     fn drop(&mut self) {
         let boxed: Box<T> = unsafe { reclaim_as_boxed(self.0) };
         drop(boxed);
     }
 }
 
-impl<T> Korobka<T> {
+impl<T: Sized> Korobka<T> {
     #[inline(always)] pub fn new(t: T) -> Self {
         Self(leak_as_nonnull(Box::new(t)), PhantomData::default())
     }
+}
 
+impl<T: ?Sized> Korobka<T> {
     pub const fn as_ptr(&self) -> *const T {
         self.0.as_ptr() as *const _
     }
@@ -35,19 +37,19 @@ impl<T> Korobka<T> {
     }
 }
 
-impl<T> AsRef<T> for Korobka<T> {
+impl<T: ?Sized> AsRef<T> for Korobka<T> {
     fn as_ref(&self) -> &T {
         unsafe { self.0.as_ref() }
     }
 }
 
-impl<T> Borrow<T> for Korobka<T> {
+impl<T: ?Sized> Borrow<T> for Korobka<T> {
     fn borrow(&self) -> &T {
         self.as_ref()
     }
 }
 
-impl<T> Deref for Korobka<T> {
+impl<T: ?Sized> Deref for Korobka<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -55,13 +57,13 @@ impl<T> Deref for Korobka<T> {
     }
 }
 
-impl<T> From<Box<T>> for Korobka<T> {
+impl<T: ?Sized> From<Box<T>> for Korobka<T> {
     fn from(boxed: Box<T>) -> Self {
         Self (leak_as_nonnull(boxed), PhantomData::default())
     }
 }
 
-impl<T> Hash for Korobka<T> where T: Hash {
+impl<T> Hash for Korobka<T> where T: ?Sized + Hash {
     fn hash<H: Hasher>(&self, state: &mut H) {
         unsafe {
             self.0.as_ref().hash(state);
@@ -69,13 +71,13 @@ impl<T> Hash for Korobka<T> where T: Hash {
     }
 }
 
-impl<T> PartialEq for Korobka<T> where T: PartialEq {
+impl<T> PartialEq for Korobka<T> where T: ?Sized + PartialEq {
     fn eq(&self, other: &Self) -> bool {
         unsafe { self.0.as_ref().eq(other.0.as_ref()) }
     }
 }
 
-impl<T> Eq for Korobka<T> where T: Eq + PartialEq {}
+impl<T> Eq for Korobka<T> where T: ?Sized + Eq + PartialEq {}
 
 #[cfg(test)]
 mod test {
