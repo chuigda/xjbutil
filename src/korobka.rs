@@ -2,10 +2,10 @@
 //!
 //! See <https://users.rust-lang.org/t/suspicious-undefined-hehaviour-report-about-stacked-borrows/62633/5>
 
-use std::borrow::Borrow;
+use std::borrow::{Borrow, BorrowMut};
 use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::ptr::NonNull;
 
 use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
@@ -23,43 +23,61 @@ impl<T: ?Sized> Drop for Korobka<T> {
 
 impl<T: Sized> Korobka<T> {
     #[inline(always)] pub fn new(t: T) -> Self {
-        Self(leak_as_nonnull(Box::new(t)), PhantomData::default())
+        Self(leak_as_nonnull(Box::new(t)), PhantomData)
     }
 }
 
 impl<T: ?Sized> Korobka<T> {
-    pub const fn as_ptr(&self) -> *const T {
+    #[inline(always)] pub const fn as_ptr(&self) -> *const T {
         self.0.as_ptr() as *const _
     }
 
-    pub const fn as_nonnull(&self) -> NonNull<T> {
+    #[inline(always)] pub const fn as_nonnull(&self) -> NonNull<T> {
         self.0
     }
 }
 
 impl<T: ?Sized> AsRef<T> for Korobka<T> {
-    fn as_ref(&self) -> &T {
+    #[inline(always)] fn as_ref(&self) -> &T {
         unsafe { self.0.as_ref() }
     }
 }
 
+impl<T: ?Sized> AsMut<T> for Korobka<T> {
+    #[inline(always)] fn as_mut(&mut self) -> &mut T {
+        unsafe { self.0.as_mut() }
+    }
+}
+
 impl<T: ?Sized> Borrow<T> for Korobka<T> {
-    fn borrow(&self) -> &T {
+    #[inline(always)] fn borrow(&self) -> &T {
         self.as_ref()
+    }
+}
+
+impl<T: ?Sized> BorrowMut<T> for Korobka<T> {
+    #[inline(always)] fn borrow_mut(&mut self) -> &mut T {
+        self.as_mut()
     }
 }
 
 impl<T: ?Sized> Deref for Korobka<T> {
     type Target = T;
 
-    fn deref(&self) -> &Self::Target {
+    #[inline(always)] fn deref(&self) -> &Self::Target {
         self.as_ref()
     }
 }
 
+impl<T: ?Sized> DerefMut for Korobka<T> {
+    #[inline(always)] fn deref_mut(&mut self) -> &mut Self::Target {
+        self.as_mut()
+    }
+}
+
 impl<T: ?Sized> From<Box<T>> for Korobka<T> {
-    fn from(boxed: Box<T>) -> Self {
-        Self (leak_as_nonnull(boxed), PhantomData::default())
+    #[inline(always)] fn from(boxed: Box<T>) -> Self {
+        Self (leak_as_nonnull(boxed), PhantomData)
     }
 }
 
@@ -72,7 +90,7 @@ impl<T> Hash for Korobka<T> where T: ?Sized + Hash {
 }
 
 impl<T> PartialEq for Korobka<T> where T: ?Sized + PartialEq {
-    fn eq(&self, other: &Self) -> bool {
+    #[inline(always)] fn eq(&self, other: &Self) -> bool {
         unsafe { self.0.as_ref().eq(other.0.as_ref()) }
     }
 }

@@ -1,16 +1,21 @@
 //! Yet another wide pointer.
 
+use std::marker::PhantomData;
+
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub struct WidePointer {
     pub ptr: usize,
-    pub trivia: usize
+    pub trivia: usize,
+    _phantom: PhantomData<*const ()>
 }
 
 impl WidePointer {
     pub const fn new(ptr: usize, trivia: usize) -> Self {
         Self {
-            ptr, trivia
+            ptr,
+            trivia,
+            _phantom: PhantomData
         }
     }
 }
