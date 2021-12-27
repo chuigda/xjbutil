@@ -67,6 +67,17 @@ impl<T> UncheckedOption<T> {
     }
 }
 
+#[cfg(debug_assertions)]
+impl<T> Drop for UncheckedOption<T> {
+    fn drop(&mut self) {
+        if self.inner.is_some() {
+            eprintln!("[xjbutil] UncheckedOption dropped with value, potential resource leak");
+        }
+        // ensure consistent behavior
+        std::mem::forget(self.inner.take());
+    }
+}
+
 #[cfg(not(debug_assertions))]
 use std::mem::{MaybeUninit, replace};
 
