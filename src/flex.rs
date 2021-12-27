@@ -123,17 +123,17 @@ impl<NF, T: Copy> FlexArray<NF, T> {
         }
     }
 
-    pub fn as_mut(&mut self) -> FLARef<NF, T> {
+    pub fn as_mut(&mut self) -> FLARefMut<NF, T> {
         let raw: *mut FLABuffer<NF, T> = self.raw.as_ptr();
         let len: usize = unsafe { (*raw).len };
         if len == 0 {
-            FLARef {
-                non_flex: unsafe { &(*raw).non_flex },
-                slice: &[]
+            FLARefMut {
+                non_flex: unsafe { &mut (*raw).non_flex },
+                slice: &mut []
             }
         } else {
             unsafe {
-                FLARef {
+                FLARefMut {
                     non_flex: &mut (*raw).non_flex,
                     slice: &mut *slice_from_raw_parts_mut(
                         addr_of_mut!((*(raw as *mut FLABufferHelper<NF, T>)).placeholder),
@@ -165,3 +165,42 @@ impl<NF, T: Copy> Drop for FlexArray<NF, T> {
 
 unsafe impl<NF, T> Send for FlexArray<NF, T> where NF: Send, T: Copy + Send {}
 unsafe impl<NF, T> Sync for FlexArray<NF, T> where NF: Sync, T: Copy + Sync {}
+
+#[cfg(test)]
+mod test {
+    use crate::flex::{FLARef, FLARefMut, FlexArray};
+
+    #[test]
+    fn test_zero_length() {
+        let flex_array: FlexArray<String, u64> = FlexArray::new("为有牺牲多壮志".into(), &[]);
+        let arr_ref: FLARef<String, u64> = flex_array.as_ref();
+        assert_eq!(arr_ref.non_flex, "为有牺牲多壮志");
+        assert_eq!(arr_ref.slice, &[]);
+    }
+
+    #[test]
+    fn test() {
+        let flex_array: FlexArray<String, u64> = FlexArray::new("foo".into(), &[1, 2, 3, 4, 5]);
+        let arr_ref: FLARef<String, u64> = flex_array.as_ref();
+        assert_eq!(arr_ref.non_flex, "foo");
+        assert_eq!(arr_ref.slice, &[1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    fn test_mutate() {
+        let mut flex_array: FlexArray<String, i32> = FlexArray::new(
+            "ウルトラマンエース, 宇宙のエース!".into(),
+            &[1, 1, 4, 5, 1, 4]
+        );
+        let arr_mut_ref: FLARefMut<String, i32> = flex_array.as_mut();
+        assert_eq!(arr_mut_ref.non_flex, "ウルトラマンエース, 宇宙のエース!");
+        assert_eq!(arr_mut_ref.slice, &[1, 1, 4, 5, 1, 4]);
+
+        *arr_mut_ref.non_flex = "ultraman Ace, u ch u no Ace!".into();
+        arr_mut_ref.slice[2] = 114514;
+
+        let arr_ref: FLARef<String, i32> = flex_array.as_ref();
+        assert_eq!(arr_ref.non_flex, "ultraman Ace, u ch u no Ace!");
+        assert_eq!(arr_ref.slice, &[1, 1, 114514, 5, 1, 4]);
+    }
+}
