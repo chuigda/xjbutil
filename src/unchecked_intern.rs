@@ -88,31 +88,37 @@ pub struct UncheckedOption<T> {
 
 #[cfg(not(debug_assertions))]
 impl<T> UncheckedOption<T> {
+    #[inline]
     pub const fn new(t: T) -> Self {
         Self {
             inner: MaybeUninit::new(t)
         }
     }
 
+    #[inline]
     pub const fn new_none() -> Self {
         Self {
             inner: MaybeUninit::uninit()
         }
     }
 
+    #[inline]
     pub unsafe fn take(&mut self) -> T {
         let ret: MaybeUninit<T> = replace(&mut self.inner, MaybeUninit::uninit());
         ret.assume_init()
     }
 
+    #[inline]
     pub unsafe fn get_ref(&self) -> &T {
         &*self.inner.as_ptr()
     }
 
+    #[inline]
     pub unsafe fn get_mut(&mut self) -> &mut T {
         &mut *self.inner.as_mut_ptr()
     }
 
+    #[inline]
     pub unsafe fn set(&mut self, t: T) {
         let _ = replace(&mut self.inner, MaybeUninit::new(t));
     }
@@ -154,10 +160,12 @@ pub trait UncheckedCellOps {
 impl<T> UncheckedCellOps for UnsafeCell<T> {
     type Target = T;
 
+    #[inline]
     unsafe fn get_ref_unchecked(&self) -> &Self::Target {
         &*(self.get() as *const T)
     }
 
+    #[inline]
     unsafe fn get_mut_ref_unchecked(&self) -> &mut Self::Target {
         &mut *self.get()
     }
