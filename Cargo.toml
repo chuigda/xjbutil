@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -13,6 +13,7 @@ unchecked_unwrap = "3"
 
 async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
+memoffset = { optional = true, version = "0.6" }
 pollster = { optional = true, version = "0.2" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
@@ -24,6 +25,7 @@ enable-all = [
     "defer",
     "display2",
     "either",
+    "flexible-array",
     "korobka",
     "makro",
     "mem",
@@ -42,6 +44,7 @@ async-tokio = ["tokio"]
 defer = []
 display2 = []
 either = []
+flexible-array = ["memoffset"]
 korobka = []
 makro = []
 mem = []
