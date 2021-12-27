@@ -1,9 +1,7 @@
 use std::alloc::{Layout, alloc, dealloc};
 use std::marker::PhantomData;
 use std::mem::{ManuallyDrop, MaybeUninit};
-use std::ptr::{NonNull, slice_from_raw_parts, slice_from_raw_parts_mut};
-
-use memoffset::raw_field;
+use std::ptr::{NonNull, addr_of, addr_of_mut, slice_from_raw_parts, slice_from_raw_parts_mut};
 
 use crate::mem_intern::{leak_as_nonnull, reclaim_as_boxed};
 
@@ -105,7 +103,7 @@ impl<NF, T: Copy> FlexArray<NF, T> {
     }
 
     pub fn as_ref(&self) -> FLARef<NF, T> {
-        let raw: *mut FLABuffer<NF, T> = self.raw.as_ptr();
+        let raw: *const FLABuffer<NF, T> = self.raw.as_ptr();
         let len: usize = unsafe { (*raw).len };
         if len == 0 {
             FLARef {
@@ -117,7 +115,7 @@ impl<NF, T: Copy> FlexArray<NF, T> {
                 FLARef {
                     non_flex: &(*raw).non_flex,
                     slice: &*slice_from_raw_parts(
-                        raw_field!(raw, FLABufferHelper<NF, T>, placeholder),
+                        addr_of!((*(raw as *const FLABufferHelper<NF, T>)).placeholder),
                         len
                     )
                 }
@@ -138,7 +136,7 @@ impl<NF, T: Copy> FlexArray<NF, T> {
                 FLARef {
                     non_flex: &mut (*raw).non_flex,
                     slice: &mut *slice_from_raw_parts_mut(
-                        raw_field!(raw as *const _, FLABufferHelper<NF, T>, placeholder) as *mut _,
+                        addr_of_mut!((*(raw as *mut FLABufferHelper<NF, T>)).placeholder),
                         len
                     )
                 }

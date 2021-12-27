@@ -13,7 +13,6 @@ unchecked_unwrap = "3"
 
 async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
-memoffset = { optional = true, version = "0.6" }
 pollster = { optional = true, version = "0.2" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
@@ -44,7 +43,7 @@ async-tokio = ["tokio"]
 defer = []
 display2 = []
 either = []
-flexible-array = ["memoffset"]
+flexible-array = []
 korobka = []
 makro = []
 mem = []
