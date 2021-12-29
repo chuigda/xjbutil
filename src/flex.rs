@@ -102,6 +102,14 @@ impl<NF, T: Copy> FlexArray<NF, T> {
         }
     }
 
+    pub fn non_flex(&self) -> &NF {
+        unsafe { &self.raw.as_ref().non_flex }
+    }
+
+    pub fn non_flex_mut(&mut self) -> &mut NF {
+        unsafe { &mut self.raw.as_mut().non_flex }
+    }
+
     pub fn as_ref(&self) -> FLARef<NF, T> {
         let raw: *const FLABuffer<NF, T> = self.raw.as_ptr();
         let len: usize = unsafe { (*raw).len };
