@@ -17,16 +17,8 @@ impl<E1, E2> Debug for Either<E1, E2>
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match &self {
-            Either::Left(left) => {
-                write!(f, "Left(")?;
-                left.fmt(f)?;
-                write!(f, ")")
-            },
-            Either::Right(right) => {
-                write!(f, "Right(")?;
-                right.fmt(f)?;
-                write!(f, ")")
-            }
+            Either::Left(left) => f.debug_tuple("Either::Left").field(left).finish(),
+            Either::Right(right) => f.debug_tuple("Either::Right").field(right).finish()
         }
     }
 }

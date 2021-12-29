@@ -1,4 +1,4 @@
-/// A special vector lets you soundly read garbage data
+//! A special vector lets you soundly read garbage data.
 
 use std::alloc::{Layout, alloc_zeroed, dealloc};
 use std::intrinsics::copy_nonoverlapping;
@@ -9,15 +9,15 @@ use std::slice::SliceIndex;
 
 use unchecked_unwrap::UncheckedUnwrap;
 
-/// Types which can be simply initialized with zero.
-pub unsafe trait ZeroInit : Copy {}
+/// Types which can be simply initialized with zero, and might not care about garbage values.
+pub unsafe trait TrivialInit: Copy {}
 
-struct ZeroRawVec<T: ZeroInit> {
+struct ZeroRawVec<T: TrivialInit> {
     ptr: NonNull<T>,
     cap: usize
 }
 
-impl<T: ZeroInit> ZeroRawVec<T> {
+impl<T: TrivialInit> ZeroRawVec<T> {
     pub unsafe fn new(cap: usize) -> Self {
         debug_assert_ne!(cap, 0);
         let layout: Layout = Layout::array::<T>(cap).unwrap();
@@ -43,7 +43,7 @@ impl<T: ZeroInit> ZeroRawVec<T> {
     }
 }
 
-impl<T: ZeroInit> Drop for ZeroRawVec<T> {
+impl<T: TrivialInit> Drop for ZeroRawVec<T> {
     fn drop(&mut self) {
         let layout: Layout = unsafe { Layout::array::<T>(self.cap).unchecked_unwrap() };
         unsafe { dealloc(self.ptr.as_ptr() as _, layout); }
@@ -54,12 +54,12 @@ impl<T: ZeroInit> Drop for ZeroRawVec<T> {
 ///
 /// Compared to [`std::vec::Vec`], this vector does not re-initialize spaces previously used when
 /// preforming `resize` operations or so. This is useful when something is garbage insensitive.
-pub struct ZeroVec<T: ZeroInit> {
+pub struct ZeroVec<T: TrivialInit> {
     raw: ZeroRawVec<T>,
     len: usize
 }
 
-impl<T: ZeroInit> ZeroVec<T> {
+impl<T: TrivialInit> ZeroVec<T> {
     pub fn new() -> Self {
         Self {
             raw: unsafe { ZeroRawVec::new(16) },
@@ -95,7 +95,7 @@ impl<T: ZeroInit> ZeroVec<T> {
     }
 }
 
-impl<T: ZeroInit> Deref for ZeroVec<T> {
+impl<T: TrivialInit> Deref for ZeroVec<T> {
     type Target = [T];
 
     fn deref(&self) -> &Self::Target {
@@ -103,13 +103,13 @@ impl<T: ZeroInit> Deref for ZeroVec<T> {
     }
 }
 
-impl<T: ZeroInit> DerefMut for ZeroVec<T> {
+impl<T: TrivialInit> DerefMut for ZeroVec<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { slice::from_raw_parts_mut(self.raw.ptr.as_ptr(), self.len) }
     }
 }
 
-impl<T: ZeroInit, I: SliceIndex<[T]>> Index<I> for ZeroVec<T> {
+impl<T: TrivialInit, I: SliceIndex<[T]>> Index<I> for ZeroVec<T> {
     type Output = I::Output;
 
     fn index(&self, index: I) -> &Self::Output {
@@ -117,20 +117,22 @@ impl<T: ZeroInit, I: SliceIndex<[T]>> Index<I> for ZeroVec<T> {
     }
 }
 
-impl<T: ZeroInit, I: SliceIndex<[T]>> IndexMut<I> for ZeroVec<T> {
+impl<T: TrivialInit, I: SliceIndex<[T]>> IndexMut<I> for ZeroVec<T> {
     fn index_mut(&mut self, index: I) -> &mut Self::Output {
         IndexMut::index_mut(&mut **self, index)
     }
 }
 
-unsafe impl ZeroInit for i8 {}
-unsafe impl ZeroInit for i16 {}
-unsafe impl ZeroInit for i32 {}
-unsafe impl ZeroInit for i64 {}
-unsafe impl ZeroInit for u8 {}
-unsafe impl ZeroInit for u16 {}
-unsafe impl ZeroInit for u32 {}
-unsafe impl ZeroInit for u64 {}
+unsafe impl TrivialInit for i8 {}
+unsafe impl TrivialInit for i16 {}
+unsafe impl TrivialInit for i32 {}
+unsafe impl TrivialInit for i64 {}
+unsafe impl TrivialInit for u8 {}
+unsafe impl TrivialInit for u16 {}
+unsafe impl TrivialInit for u32 {}
+unsafe impl TrivialInit for u64 {}
 
-unsafe impl<T1, T2> ZeroInit for (T1, T2) where T1: ZeroInit, T2: ZeroInit {}
-unsafe impl<T1, T2, T3> ZeroInit for (T1, T2, T3) where T1: ZeroInit, T2: ZeroInit, T3: ZeroInit {}
+unsafe impl<T1, T2> TrivialInit for (T1, T2) where T1: TrivialInit, T2: TrivialInit {}
+
+unsafe impl<T1, T2, T3> TrivialInit for (T1, T2, T3)
+    where T1: TrivialInit, T2: TrivialInit, T3: TrivialInit {}

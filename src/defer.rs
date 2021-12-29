@@ -1,4 +1,35 @@
 //! RAII structure used for deferring execution
+//!
+//! It's strongly suggested that you should use macros `xjbutil::defer` and `xjbutil::defer2`.
+//! These raw structures are considered hard to use.
+//!
+//! ```
+//! use xjbutil::defer;
+//!
+//! fn main() {
+//!     defer!(|| println!("defer1"));
+//!
+//!     let mut s1 = "Far from the galaxy".to_string();
+//!     let mut s2 = "Is where your home lies".to_string();
+//!
+//!     defer!(|(s1, s2)| {
+//!         assert_eq!(s1, "Save us from destruction the evil monsters");
+//!         assert_eq!(s2, "With ultra-beam, spike!");
+//!         println!("{} {}", s1, s2);
+//!     }, s1, s2);
+//!
+//!     defer!(|mut s1| {
+//!         assert_eq!(s1, "March to the end of the big milky way");
+//!         *s1 = "Save us from destruction the evil monsters".to_string();
+//!     }, s1);
+//!
+//!     assert_eq!(*s1, "Far from the galaxy");
+//!     assert_eq!(s2, "Is where your home lies");
+//!
+//!     **s1 = "March to the end of the big milky way".to_string();
+//!     *s2 = "With ultra-beam, spike!".to_string();
+//! }
+//! ```
 
 use crate::unchecked_intern::UncheckedOption;
 

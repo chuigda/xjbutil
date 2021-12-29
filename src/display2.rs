@@ -1,3 +1,36 @@
+//! Use this when you need a third display mode.
+//!
+//! //! It's strongly suggested that you should use `xjbutil::display2`
+//!
+//! ```
+//! # use std::fmt::{Display, Formatter};
+//! use xjbutil::display2;
+//! use xjbutil::display2::Display2;
+//!
+//! #[derive(Debug)]
+//! struct Foo {
+//!     xyzzy: i32
+//! }
+//!
+//! impl Display for Foo {
+//!      // omitted
+//! #    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+//! #        write!(f, "Foo: xyzzy = {}", self.xyzzy)
+//! #    }
+//! }
+//!
+//! impl Display2 for Foo {
+//!     fn fmt2(&self, fmt: &mut Formatter<'_>) -> std::fmt::Result {
+//!         write!(fmt, "I am Display2!")
+//!     }
+//! }
+//!
+//! # fn main() {
+//! let foo = Foo { xyzzy: 42 };
+//! println!("Debug: {:?}\nDisplay: {}\nDisplay2: {}", foo, foo, display2!(&foo));
+//! # }
+//! ```
+
 use std::cell::{Ref, RefMut};
 use std::fmt::{Display, Formatter};
 

@@ -1,3 +1,22 @@
+//! Used for allocating a bunch of small slices.
+//!
+//! ```
+//! # use xjbutil::slice_arena::SliceArena;
+//! # fn main() {
+//! let mut arena: SliceArena<4096, 8> = SliceArena::new();
+//!
+//! let u8_slice = arena.make(&[b'A', b'C', b'E']);
+//! let u16_slice = arena.make(&[42u16]);
+//! let u32_slice = arena.make(&[1u32, 2, 3]);
+//! let char_slice = arena.make(&['エ', 'ー', 'ス']);
+//!
+//! assert_eq!(u8_slice, &[b'A', b'C', b'E']);
+//! assert_eq!(u16_slice, &[42u16]);
+//! assert_eq!(u32_slice, &[1u32, 2, 3]);
+//! assert_eq!(char_slice, &['エ', 'ー', 'ス']);
+//! # }
+//! ```
+
 use std::alloc::{alloc, dealloc, Layout};
 use std::cell::UnsafeCell;
 use std::mem::{align_of, size_of};
@@ -23,6 +42,7 @@ impl<const DEBRIS_SIZE: usize, const ALIGN: usize> ArenaDebris<DEBRIS_SIZE, ALIG
         }
     }
 
+    #[inline]
     fn rest<T>(&self) -> usize {
         (DEBRIS_SIZE - self.usage) / size_of::<T>()
     }
@@ -190,9 +210,9 @@ mod test {
     #[test]
     fn basic_test() {
         let arena: SliceArena<1024, 8> = SliceArena::new();
-        let slice1: &[u8] = arena.make(&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        let slice1: &[u8] = arena.make(&[1, 2, 3, 4, 5, 6, 7, 8, 9]);
         let slice2: &[u16] = arena.make_from_iter([1u16, 3, 1, 4, 2, 3, 3].iter(), 7);
-        assert_eq!(slice1, &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        assert_eq!(slice1, &[1, 2, 3, 4, 5, 6, 7, 8, 9]);
         assert_eq!(slice2, &[1, 3, 1, 4, 2, 3, 3]);
     }
 }
