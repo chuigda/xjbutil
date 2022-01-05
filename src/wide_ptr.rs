@@ -1,9 +1,10 @@
 //! Yet another wide pointer.
 
+use std::fmt::Debug;
 use std::marker::PhantomData;
 
 #[repr(C)]
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Eq, Hash, PartialEq)]
 pub struct WidePointer {
     pub ptr: usize,
     pub trivia: usize,
@@ -17,6 +18,12 @@ impl WidePointer {
             trivia,
             _phantom: PhantomData
         }
+    }
+}
+
+impl Debug for WidePointer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "WidePointer(0x{:X}, 0x{:X})", self.ptr, self.trivia)
     }
 }
 
