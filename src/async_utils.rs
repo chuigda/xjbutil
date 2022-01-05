@@ -90,6 +90,16 @@ pub fn block_on_future<F, R>(fut: F) -> R
 }
 
 #[cfg(feature = "async-monoio")]
+/// Just block on your `Future`
+///
+/// This function is equivalent to the following code:
+/// ```rust,ignore
+/// monoio::RuntimeBuilder::new()
+///     .enable_timer()
+///     .build()
+///     .unwrap()
+///     .block_on(fut)
+/// ```
 pub fn block_on_future<F, R>(fut: F) -> R
     where F: Future<Output=R> + 'static,
           R: 'static
