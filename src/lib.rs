@@ -1,6 +1,11 @@
 #[cfg(all(
-any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio"),
-not(feature = "async")
+    any(
+        feature = "async-astd",
+        feature = "async-monoio",
+        feature = "async-pollster",
+        feature = "async-tokio"
+    ),
+    not(feature = "async")
 ))]
 compile_error!(
     "appointing concrete async implementation without appointing `async` feature is meaningless"
@@ -11,8 +16,14 @@ mod unchecked_intern;
 
 #[cfg(all(
     feature = "async",
-    any(feature = "async-astd", feature = "async-pollster", feature = "async-tokio")))
-] pub mod async_utils;
+    any(
+        feature = "async-astd",
+        feature = "async-monoio",
+        feature = "async-pollster",
+        feature = "async-tokio",
+    )
+))]
+pub mod async_utils;
 #[cfg(feature = "defer")]          pub mod defer;
 #[cfg(feature = "display2")]       pub mod display2;
 #[cfg(feature = "either")]         pub mod either;
