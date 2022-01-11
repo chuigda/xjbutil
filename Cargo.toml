@@ -13,6 +13,7 @@ unchecked_unwrap = "3"
 
 async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
+monoio = { optional = true, version = "0.0.3", default-features = false }
 pollster = { optional = true, version = "0.2" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
@@ -39,6 +40,7 @@ enable-all = [
 async = ["futures"]
 async-astd = ["async-std"]
 async-pollster = ["pollster"]
+async-monoio = ["monoio"]
 async-tokio = ["tokio"]
 defer = []
 display2 = []
