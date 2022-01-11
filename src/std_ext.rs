@@ -61,9 +61,8 @@ impl<T> VecExt<T> for Vec<T> {
 }
 
 /// Extension on `std::result::Result` and `std::option::Option`
-///
-/// Exit program on on error silently without backtrace or so.
 pub trait ExpectSilentExt<T> {
+    /// Like normal `expect`, but will exit program on on error silently without back trace.
     fn expect_silent(self, message: &str) -> T;
 }
 
@@ -87,6 +86,65 @@ impl<T> ExpectSilentExt<T> for Option<T> {
                 eprintln!("{}", message);
                 std::process::exit(-1);
             }
+        }
+    }
+}
+
+/// Extensions on `std::result::Result`
+pub trait ResultExt<T, E> {
+    /// Like normal `expect`, but does not require a `Debug` implementation on your `Err` variant.
+    fn expect_no_debug(self, message: &str) -> T;
+
+    /// Like normal `unwrap`, but does not require a `Debug` implementation on your `Err` variant.
+    fn unwrap_no_debug(self) -> T;
+
+    /// Like normal `expect_err`, but does not require a `Debug` implementation on your
+    /// `Ok` variant.
+    fn expect_err_no_debug(self, message: &str) -> E;
+
+    /// Like normal `unwrap_err`, but does not require a `Debug` implementation on your
+    /// `Ok` variant
+    fn unwrap_err_no_debug(self) -> E;
+}
+
+impl<T, E> ResultExt<T, E> for Result<T, E> {
+    #[inline]
+    #[track_caller]
+    fn expect_no_debug(self, message: &str) -> T {
+        if let Ok(result) = self {
+            result
+        } else {
+            panic!("{}", message)
+        }
+    }
+
+    #[inline]
+    #[track_caller]
+    fn unwrap_no_debug(self) -> T {
+        if let Ok(result) = self {
+            result
+        } else {
+            panic!("called `Result::unwrap_no_debug()` on an `Err` value")
+        }
+    }
+
+    #[inline]
+    #[track_caller]
+    fn expect_err_no_debug(self, message: &str) -> E {
+        if let Err(err) = self {
+            err
+        } else {
+            panic!("{}", message)
+        }
+    }
+
+    #[inline]
+    #[track_caller]
+    fn unwrap_err_no_debug(self) -> E {
+        if let Err(err) = self {
+            err
+        } else {
+            panic!("called `Result::unwrap_err_no_debug()` on an `Ok` value")
         }
     }
 }
