@@ -19,6 +19,20 @@
 //! assert_eq!(flex.flex(), &['エ', 'ー', 'ス']);
 //! # }
 //! ```
+//!
+//! The primary purpose of this structure is to make the address of both fixed and flexible part
+//! stable, without another heap allocation. For example, consider the following structure:
+//!
+//! ```rust
+//! struct FixedAndFlex {
+//!     fixed: u64,
+//!     flex: Box<[char]>
+//! }
+//! ```
+//!
+//! and if you want to make the address of `fixed` stable, you'll need another `Box` or so outside.
+//! Using `FlexArray` would allow you allocating `fixed` and `flex` together, avoiding a second
+//! allocation.
 
 use std::alloc::{Layout, alloc, dealloc};
 use std::marker::PhantomData;
