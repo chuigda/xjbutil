@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.7.0-CHARLIE"
+version = "0.7.0-DELTA"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -29,6 +29,7 @@ enable-all = [
     "korobka",
     "makro",
     "mem",
+    "minhttpd",
     "slice-arena",
     "std-ext",
     "unchecked",
@@ -49,6 +50,7 @@ flexible-array = []
 korobka = []
 makro = []
 mem = []
+minhttpd = []
 slice-arena = []
 std-ext = []
 unchecked = []
