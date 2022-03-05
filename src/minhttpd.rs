@@ -7,8 +7,8 @@ use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::SeqCst;
 use std::thread;
 
-use crate::http_commons::{HttpBody, HttpHeaders, HttpParams, HttpResponse, HttpUri};
-use crate::http_commons::http_code_describe;
+pub use crate::http_commons::{HttpBody, HttpHeaders, HttpParams, HttpResponse, HttpUri};
+pub use crate::http_commons::http_code_describe;
 
 const HTTP_404_STRING: &'static str = include_str!("../resc/http_404.html");
 
@@ -18,6 +18,8 @@ pub type HttpHandler = Box<
         + Sync
         + 'static
 >;
+
+type HttpHandlerFn = fn(HttpHeaders, HttpParams, HttpBody) -> Result<HttpResponse, Box<dyn Error>>;
 
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
 pub enum HttpLogLevel {
@@ -49,8 +51,23 @@ impl MinHttpd {
         }
     }
 
-    pub fn route(&mut self, uri: HttpUri, handler: HttpHandler) {
-        self.handlers.insert(uri, handler);
+    pub fn route(&mut self, uri: &str, handler: HttpHandler) {
+        self.handlers.insert(uri.to_string(), handler);
+    }
+
+    pub fn route_fn(&mut self, uri: &str, handler_fn: HttpHandlerFn) {
+        self.handlers.insert(uri.to_string(), Box::new(handler_fn));
+    }
+
+    pub fn route_static(&mut self, uri: &str, content_type: &str, content: String) {
+        let content_type = content_type.to_string();
+        self.handlers.insert(uri.to_string(), Box::new(move |_, _, _| {
+            Ok(HttpResponse::new(
+                200,
+                vec![("Content-Type".to_string(), content_type.clone())],
+                Some(content.clone()))
+            )
+        }));
     }
 
     pub fn serve(&self, addr: SocketAddrV4) -> Result<Infallible, Box<dyn Error>> {
@@ -87,7 +104,7 @@ impl MinHttpd {
         &self,
         stream: TcpStream,
         request_id: u64
-    ) -> Result<(), Box<dyn Error>>{
+    ) -> Result<(), Box<dyn Error>> {
         let mut reader = BufReader::new(&stream);
         let mut writer = BufWriter::new(&stream);
 
@@ -122,7 +139,12 @@ impl MinHttpd {
 
         let uri = parts[1].to_string();
         let uri_parts = uri.split("?").collect::<Vec<_>>();
-        let uri = uri_parts[0].to_string();
+        let mut uri = uri_parts[0].to_string();
+
+        if uri.ends_with("/") {
+            uri.pop();
+        }
+
         let params = if uri_parts.len() > 1 {
             let mut params = HashMap::new();
             for param in uri_parts[1].split("&") {
@@ -184,14 +206,35 @@ impl MinHttpd {
             let mut response = match result {
                 Ok(result) => result,
                 Err(e) => {
+                    self.log(
+                        HttpLogLevel::Error,
+                        &format!("[MIN-HTTPD/{}] Error handling request: {}", request_id, e)
+                    );
                     HttpResponse::new(
                         500,
-                        vec![("Connection".to_string(), "close".to_string())],
+                        Vec::new(),
                         Some(format!(include_str!("../resc/http_500.html"), e)),
                     )
                 }
             };
 
+            if response.has_header("Content-Length") {
+                self.log(
+                    HttpLogLevel::Error,
+                    &format!("[MIN-HTTPD/{}] Setting `Content-Length` is not allowed", request_id)
+                );
+                return Ok(());
+            }
+
+            if response.has_header("Connection") {
+                self.log(
+                    HttpLogLevel::Error,
+                    &format!("[MIN-HTTPD/{}] Setting `Connection` is not allowed", request_id)
+                );
+                return Ok(());
+            }
+
+            response.add_header("Connection", "close");
             if !response.has_header("Server") {
                 response.add_header("Server", "xjbutil/0.7 rhttpd");
             }
@@ -239,5 +282,48 @@ impl MinHttpd {
 impl Default for MinHttpd {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use std::collections::HashMap;
+    use std::error::Error;
+    use std::net::{Ipv4Addr, SocketAddrV4};
+
+    use crate::minhttpd::{HttpResponse, MinHttpd};
+
+    #[test]
+    #[ignore]
+    fn test_min_httpd() {
+        fn example_handler(
+            _headers: HashMap<String, String>,
+            params: HashMap<String, String>,
+            _body: Option<String>,
+        ) -> Result<HttpResponse, Box<dyn Error>> {
+            Ok(
+                HttpResponse::builder()
+                    .add_header("Content-Type", "text/plain")
+                    .set_payload(
+                        format!("Hello, {}!", params.get("name").unwrap_or(&"world".to_string())),
+                    )
+                    .build()
+            )
+        }
+
+        fn example_500_handler(
+            _headers: HashMap<String, String>,
+            _params: HashMap<String, String>,
+            _body: Option<String>,
+        ) -> Result<HttpResponse, Box<dyn Error>> {
+            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Example error")))
+        }
+
+        let mut min_httpd = MinHttpd::new();
+        min_httpd.route_fn("/hello", example_handler);
+        min_httpd.route_fn("/error", example_500_handler);
+        if let Err(e) = min_httpd.serve(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 3080)) {
+            panic!("{}", e);
+        }
     }
 }

@@ -49,13 +49,13 @@ impl HttpResponseBuilder {
         self
     }
 
-    pub fn add_header(mut self, key: String, value: String) -> Self {
-        self.headers.push((key, value));
+    pub fn add_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.headers.push((key.into(), value.into()));
         self
     }
 
-    pub fn set_payload(mut self, payload: String) -> Self {
-        self.payload = Some(payload);
+    pub fn set_payload(mut self, payload: impl Into<String>) -> Self {
+        self.payload = Some(payload.into());
         self
     }
 
