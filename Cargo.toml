@@ -18,7 +18,19 @@ pollster = { optional = true, version = "0.2" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
 [features]
-default = ["enable-all", "async-tokio"]
+default = ["enable-commons", "async-tokio"]
+
+enable-commons = [
+    "async",
+    "defer",
+    "display2",
+    "either",
+    "flexible-array",
+    "makro",
+    "mem",
+    "std-ext",
+    "unchecked"
+]
 
 enable-all = [
     "async",
@@ -27,6 +39,7 @@ enable-all = [
     "either",
     "flexible-array",
     "korobka",
+    "liberty",
     "makro",
     "mem",
     "minhttpd",
@@ -48,9 +61,11 @@ display2 = []
 either = []
 flexible-array = []
 korobka = []
+liberty = []
 makro = []
 mem = []
 minhttpd = []
+rand = []
 slice-arena = []
 std-ext = []
 unchecked = []

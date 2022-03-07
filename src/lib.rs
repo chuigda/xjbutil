@@ -11,6 +11,7 @@ compile_error!(
     "appointing concrete async implementation without appointing `async` feature is meaningless"
 );
 
+mod rand_intern;
 mod mem_intern;
 mod unchecked_intern;
 
@@ -31,6 +32,7 @@ pub mod async_utils;
 #[cfg(feature = "either")]         pub mod either;
 #[cfg(feature = "flexible-array")] pub mod flex;
 #[cfg(feature = "korobka")]        pub mod korobka;
+#[cfg(feature = "liberty")]        pub mod liberty;
 #[cfg(feature = "makro")]          pub mod makro;
 #[cfg(feature = "minhttpd")]       pub mod minhttpd;
 #[cfg(feature = "slice-arena")]    pub mod slice_arena;
@@ -40,4 +42,5 @@ pub mod async_utils;
 #[cfg(feature = "wide_ptr")]       pub mod wide_ptr;
 #[cfg(feature = "zvec")]           pub mod zvec;
 
+#[cfg(feature = "rand")]           pub mod rand { pub use crate::rand_intern::*; }
 #[cfg(feature = "mem")]            pub mod mem { pub use crate::mem_intern::*; }
