@@ -11,11 +11,14 @@ compile_error!(
     "appointing concrete async implementation without appointing `async` feature is meaningless"
 );
 
-mod rand_intern;
 mod mem_intern;
 mod unchecked_intern;
 
 #[cfg(feature = "minhttpd")] mod http_commons;
+#[cfg(any(
+    feature = "liberty",
+    feature = "rand"
+))]  mod rand_intern;
 
 #[cfg(all(
     feature = "async",
