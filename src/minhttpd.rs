@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::convert::Infallible;
 use std::error::Error;
 use std::io::{BufRead, BufReader, BufWriter, Read, Write};
-use std::net::{SocketAddrV4, TcpListener, TcpStream};
+use std::net::{SocketAddr, SocketAddrV4, TcpListener, TcpStream};
 use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering::SeqCst;
 use std::thread;
@@ -60,7 +60,7 @@ impl MinHttpd {
     }
 
     pub fn route_static(&mut self, uri: &str, content_type: &str, content: String) {
-        let content_type = content_type.to_string();
+        let content_type: String = content_type.to_string();
         self.handlers.insert(uri.to_string(), Box::new(move |_, _, _| {
             Ok(HttpResponse::new(
                 200,
@@ -71,10 +71,10 @@ impl MinHttpd {
     }
 
     pub fn serve(&self, addr: SocketAddrV4) -> Result<Infallible, Box<dyn Error>> {
-        let tcp_listener = TcpListener::bind(addr)?;
+        let tcp_listener: TcpListener = TcpListener::bind(addr)?;
         loop {
-            let (stream, addr) = tcp_listener.accept()?;
-            let request_id = self.request_counter.fetch_add(1, SeqCst);
+            let (stream, addr): (TcpStream, SocketAddr) = tcp_listener.accept()?;
+            let request_id: u64 = self.request_counter.fetch_add(1, SeqCst);
             self.log(
                 HttpLogLevel::Info,
                 &format!("[MIN-HTTPD/{}] Accepted connection from: {}", request_id, addr)
@@ -85,10 +85,7 @@ impl MinHttpd {
     }
 
     fn handle_connection(&self, stream: TcpStream, request_id: u64) {
-        let unsafe_self = unsafe {
-            std::mem::transmute::<&'_ Self, &'static Self>(&self)
-        };
-
+        let unsafe_self: &'static Self = unsafe { std::mem::transmute::<&'_ _, &'static _>(self) };
         thread::spawn(move || {
             match Self::handle_connection_impl(unsafe_self, stream, request_id) {
                 Ok(_) => {},
@@ -105,13 +102,13 @@ impl MinHttpd {
         stream: TcpStream,
         request_id: u64
     ) -> Result<(), Box<dyn Error>> {
-        let mut reader = BufReader::new(&stream);
-        let mut writer = BufWriter::new(&stream);
+        let mut reader: BufReader<&TcpStream> = BufReader::new(&stream);
+        let mut writer: BufWriter<&TcpStream> = BufWriter::new(&stream);
 
-        let mut line = String::new();
+        let mut line: String = String::new();
         reader.read_line(&mut line)?;
 
-        let parts = line.trim().split_whitespace().collect::<Vec<_>>();
+        let parts: Vec<&str> = line.trim().split_whitespace().collect::<Vec<_>>();
         if parts.len() != 3 {
             self.log(
                 HttpLogLevel::Error,
@@ -119,8 +116,8 @@ impl MinHttpd {
             );
             return Ok(());
         }
-        let method = parts[0].to_lowercase();
-        let version = parts[2].to_lowercase();
+        let method: String = parts[0].to_lowercase();
+        let version: String = parts[2].to_lowercase();
 
         if method != "get" && parts[0] != "post" {
             self.log(
@@ -137,18 +134,18 @@ impl MinHttpd {
             return Ok(());
         }
 
-        let uri = parts[1].to_string();
-        let uri_parts = uri.split("?").collect::<Vec<_>>();
-        let mut uri = uri_parts[0].to_string();
+        let uri: String = parts[1].to_string();
+        let uri_parts: Vec<&str> = uri.split("?").collect::<Vec<_>>();
+        let mut uri: String = uri_parts[0].to_string();
 
         if uri.ends_with("/") {
             uri.pop();
         }
 
-        let params = if uri_parts.len() > 1 {
-            let mut params = HashMap::new();
+        let params: HashMap<String, String> = if uri_parts.len() > 1 {
+            let mut params: HashMap<String, String> = HashMap::new();
             for param in uri_parts[1].split("&") {
-                let param_parts = param.split("=").collect::<Vec<_>>();
+                let param_parts: Vec<&str> = param.split("=").collect::<Vec<_>>();
                 if param_parts.len() != 2 {
                     self.log(
                         HttpLogLevel::Error,
@@ -166,14 +163,14 @@ impl MinHttpd {
             HashMap::new()
         };
 
-        let mut headers = HashMap::new();
+        let mut headers: HashMap<String, String> = HashMap::new();
         loop {
             line.clear();
             reader.read_line(&mut line)?;
             if line.trim().is_empty() {
                 break;
             }
-            let parts = line.trim().split(": ").collect::<Vec<_>>();
+            let parts: Vec<&str> = line.trim().split(": ").collect::<Vec<_>>();
             if parts.len() != 2 {
                 self.log(
                     HttpLogLevel::Error,
@@ -187,23 +184,23 @@ impl MinHttpd {
             );
         }
 
-        let body = if headers.contains_key("content-length") {
-            let content_length = headers["content-length"].parse::<usize>()?;
-            let mut buffer = vec![0; content_length];
+        let body: Option<Vec<u8>> = if headers.contains_key("content-length") {
+            let content_length: usize = headers["content-length"].parse()?;
+            let mut buffer: Vec<u8> = vec![0; content_length];
             reader.read_exact(&mut buffer)?;
             Some(buffer)
         } else {
             None
         };
 
-        let handler = self.handlers.get(&uri);
+        let handler: Option<&HttpHandler> = self.handlers.get(&uri);
         if let Some(handler) = handler {
-            let result = handler(
+            let result: Result<HttpResponse, Box<dyn Error>> = handler(
                 headers,
                 params,
                 body.map(|b| String::from_utf8_lossy(b.as_ref()).to_string()),
             );
-            let mut response = match result {
+            let mut response: HttpResponse = match result {
                 Ok(result) => result,
                 Err(e) => {
                     self.log(
@@ -245,7 +242,7 @@ impl MinHttpd {
                 response.code,
                 http_code_describe(response.code)
             )?;
-            for (key, value) in response.headers {
+            for (key /*: String*/, value /*: String*/) in response.headers {
                 write!(writer, "{}: {}\r\n", key, value)?;
             }
             if let Some(payload) = response.payload {
