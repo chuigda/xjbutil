@@ -1,13 +1,145 @@
 use std::collections::HashMap;
+use std::convert::TryInto;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value {
     Nil,
     Bool(bool),
-    Number(f64),
+    Int(i64),
+    Float(f64),
     String(String),
     Array(Vec<Value>),
     Object(HashMap<String, Value>),
+}
+
+impl Value {
+    pub fn is_nil(&self) -> bool {
+        if let Value::Nil = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_bool(&self) -> bool {
+        if let Value::Bool(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_int(&self) -> bool {
+        if let Value::Int(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_float(&self) -> bool {
+        if let Value::Float(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_string(&self) -> bool {
+        if let Value::String(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_array(&self) -> bool {
+        if let Value::Array(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_object(&self) -> bool {
+        if let Value::Object(_) = self {
+            true
+        } else {
+            false
+        }
+    }
+}
+
+impl TryInto<bool> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<bool, Self::Error> {
+        if let Value::Bool(b) = self {
+            Ok(b)
+        } else {
+            Err(format!("{:?} is not a bool", self))
+        }
+    }
+}
+
+impl TryInto<i64> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<i64, Self::Error> {
+        if let Value::Int(i) = self {
+            Ok(i)
+        } else {
+            Err(format!("{:?} is not an int", self))
+        }
+    }
+}
+
+impl TryInto<f64> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<f64, Self::Error> {
+        if let Value::Float(f) = self {
+            Ok(f)
+        } else {
+            Err(format!("{:?} is not a float", self))
+        }
+    }
+}
+
+impl TryInto<String> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<String, Self::Error> {
+        if let Value::String(s) = self {
+            Ok(s)
+        } else {
+            Err(format!("{:?} is not a string", self))
+        }
+    }
+}
+
+impl TryInto<Vec<Value>> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<Vec<Value>, Self::Error> {
+        if let Value::Array(a) = self {
+            Ok(a)
+        } else {
+            Err(format!("{:?} is not an array", self))
+        }
+    }
+}
+
+impl TryInto<HashMap<String, Value>> for Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<HashMap<String, Value>, Self::Error> {
+        if let Value::Object(o) = self {
+            Ok(o)
+        } else {
+            Err(format!("{:?} is not an object", self))
+        }
+    }
 }
 
 #[cfg(feature = "value-serde")]
@@ -23,7 +155,8 @@ impl Serialize for Value {
         match self {
             Value::Nil => serializer.serialize_unit(),
             Value::Bool(b) => serializer.serialize_bool(*b),
-            Value::Number(n) => serializer.serialize_f64(*n),
+            Value::Int(i) => serializer.serialize_i64(*i),
+            Value::Float(n) => serializer.serialize_f64(*n),
             Value::String(s) => serializer.serialize_str(&s),
             Value::Array(a) => a.serialize(serializer),
             Value::Object(o) => o.serialize(serializer),
@@ -57,19 +190,19 @@ impl<'de> Deserialize<'de> for Value {
             fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
                 where E: Error
             {
-                Ok(Value::Number(value as f64))
+                Ok(Value::Int(value))
             }
 
             fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
                 where E: Error
             {
-                Ok(Value::Number(value as f64))
+                Ok(Value::Int(value as i64))
             }
 
             fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
                 where E: Error
             {
-                Ok(Value::Number(value))
+                Ok(Value::Float(value))
             }
 
             fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
