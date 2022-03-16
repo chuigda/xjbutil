@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.7.0-ECHO"
+version = "0.7.0-FOXTROT"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -15,6 +15,7 @@ async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
 monoio = { optional = true, version = "0.0.3", default-features = false }
 pollster = { optional = true, version = "0.2" }
+serde = { optional = true, version = "1" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 
 [features]
@@ -29,7 +30,9 @@ enable-commons = [
     "makro",
     "mem",
     "std-ext",
-    "unchecked"
+    "unchecked",
+    "value",
+    "value-serde"
 ]
 
 enable-all = [
@@ -46,6 +49,8 @@ enable-all = [
     "slice-arena",
     "std-ext",
     "unchecked",
+    "value",
+    "value-serde",
     "void",
     "wide_ptr",
     "zvec"
@@ -69,6 +74,8 @@ rand = []
 slice-arena = []
 std-ext = []
 unchecked = []
+value = []
+value-serde = ["serde"]
 void = []
 wide_ptr = []
 zvec = []

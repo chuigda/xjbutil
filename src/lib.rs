@@ -38,6 +38,7 @@ pub mod async_utils;
 #[cfg(feature = "slice-arena")]    pub mod slice_arena;
 #[cfg(feature = "std-ext")]        pub mod std_ext;
 #[cfg(feature = "unchecked")]      pub mod unchecked;
+#[cfg(feature = "value")]          pub mod value;
 #[cfg(feature = "void")]           pub mod void;
 #[cfg(feature = "wide_ptr")]       pub mod wide_ptr;
 #[cfg(feature = "zvec")]           pub mod zvec;

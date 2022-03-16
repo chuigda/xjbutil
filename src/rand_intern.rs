@@ -23,6 +23,7 @@ pub fn random() -> u64 {
     ).unwrap()
 }
 
+#[cfg(feature = "rand")]
 pub fn random_string(count: usize) -> String {
     let mut ret = Vec::with_capacity(count);
     for _ in 0..count {
