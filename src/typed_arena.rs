@@ -47,6 +47,7 @@ impl<T, const DEBRIS_SIZE: usize> Drop for ArenaDebris<T, DEBRIS_SIZE> {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct ArenaPtr<T> {
     ptr: *mut T,
     from_arena: *const ()
