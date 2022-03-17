@@ -47,11 +47,21 @@ impl<T, const DEBRIS_SIZE: usize> Drop for ArenaDebris<T, DEBRIS_SIZE> {
     }
 }
 
-#[derive(Copy, Clone)]
 pub struct ArenaPtr<T> {
     ptr: *mut T,
     from_arena: *const ()
 }
+
+impl<T> Clone for ArenaPtr<T> {
+    fn clone(&self) -> Self {
+        Self {
+            ptr: self.ptr,
+            from_arena: self.from_arena
+        }
+    }
+}
+
+impl<T> Copy for ArenaPtr<T> {}
 
 impl<T> ArenaPtr<T> {
     pub fn get<'a>(&self, arena: &'a impl IntoArenaPtr) -> &'a T {
