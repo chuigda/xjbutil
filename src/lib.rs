@@ -11,13 +11,19 @@ compile_error!(
     "appointing concrete async implementation without appointing `async` feature is meaningless"
 );
 
+#[cfg(all(feature = "strict-sound", feature = "wide_ptr"))]
+compile_error!(
+    "`wide_ptr` feature is actually UB-rich, it cannot be used soundly"
+);
+
 mod mem_intern;
 mod unchecked_intern;
 
 #[cfg(feature = "minhttpd")] mod http_commons;
 #[cfg(any(
     feature = "liberty",
-    feature = "rand"
+    feature = "rand",
+    test
 ))]  mod rand_intern;
 
 #[cfg(all(
@@ -38,6 +44,7 @@ pub mod async_utils;
 #[cfg(feature = "liberty")]        pub mod liberty;
 #[cfg(feature = "makro")]          pub mod makro;
 #[cfg(feature = "minhttpd")]       pub mod minhttpd;
+#[cfg(feature = "typed-arena")]    pub mod typed_arena;
 #[cfg(feature = "slice-arena")]    pub mod slice_arena;
 #[cfg(feature = "std-ext")]        pub mod std_ext;
 #[cfg(feature = "unchecked")]      pub mod unchecked;

@@ -17,7 +17,7 @@
 //! # }
 //! ```
 
-use std::alloc::{alloc, dealloc, Layout};
+use std::alloc::{Layout, alloc, dealloc};
 use std::cell::UnsafeCell;
 use std::mem::{align_of, size_of};
 use std::ops::Deref;
@@ -214,5 +214,8 @@ mod test {
         let slice2: &[u16] = arena.make_from_iter([1u16, 3, 1, 4, 2, 3, 3].iter(), 7);
         assert_eq!(slice1, &[1, 2, 3, 4, 5, 6, 7, 8, 9]);
         assert_eq!(slice2, &[1, 3, 1, 4, 2, 3, 3]);
+
+        let string_slice: &[u8] = arena.make("Hello, world!".as_bytes());
+        assert_eq!(string_slice, "Hello, world!".as_bytes());
     }
 }

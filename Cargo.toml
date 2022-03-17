@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.7.0-FOXTROT"
+version = "0.7.0-GOLF"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -30,6 +30,7 @@ enable-commons = [
     "makro",
     "mem",
     "std-ext",
+    "strict-sound",
     "unchecked",
     "value",
     "value-serde"
@@ -46,6 +47,7 @@ enable-all = [
     "makro",
     "mem",
     "minhttpd",
+    "typed-arena",
     "slice-arena",
     "std-ext",
     "unchecked",
@@ -71,8 +73,10 @@ makro = []
 mem = []
 minhttpd = []
 rand = []
+typed-arena = []
 slice-arena = []
 std-ext = []
+strict-sound = []
 unchecked = []
 value = []
 value-serde = ["serde"]

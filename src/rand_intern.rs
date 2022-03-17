@@ -1,3 +1,5 @@
+#![cfg_attr(test, allow(dead_code))]
+
 use std::sync::atomic::{AtomicBool, AtomicU64};
 use std::sync::atomic::Ordering::SeqCst;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -31,14 +33,14 @@ pub fn random() -> u64 {
     ).unwrap()
 }
 
-#[cfg(feature = "rand")]
+#[cfg(any(feature = "rand", test))]
 pub fn random_string(count: usize) -> String {
     let mut ret: Vec<u8> = Vec::with_capacity(count);
     for _ in 0..count {
         match random() % 3 {
-            0 => ret.push('a' as u8 + (random() % 26) as u8),
-            1 => ret.push('A' as u8 + (random() % 26) as u8),
-            2 => ret.push('0' as u8 + (random() % 10) as u8),
+            0 => ret.push(b'a' + (random() % 26) as u8),
+            1 => ret.push(b'A' + (random() % 26) as u8),
+            2 => ret.push(b'0' + (random() % 10) as u8),
             _ => unreachable!(),
         }
     }
