@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::cell::UnsafeCell;
 
 /// Provides unchecked variant of `std::option::Option`

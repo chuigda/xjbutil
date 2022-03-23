@@ -209,7 +209,7 @@ impl MinHttpd {
                     );
                     HttpResponse::new(
                         500,
-                        Vec::new(),
+                        vec![("Content-Type".to_string(), "text/html".to_string())],
                         Some(format!(include_str!("../resc/http_500.html"), e)),
                     )
                 }
@@ -260,6 +260,7 @@ impl MinHttpd {
 
             write!(writer, "HTTP/1.1 404 Not Found\r\n")?;
             write!(writer, "Connection: close\r\n")?;
+            write!(writer, "Content-Type: text/html\r\n")?;
             write!(writer, "Content-Length: {}\r\n", HTTP_404_STRING.len())?;
             write!(writer, "\r\n")?;
             writer.write_all(HTTP_404_STRING.as_bytes())?;
@@ -316,7 +317,7 @@ mod test {
             Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Example error")))
         }
 
-        let mut min_httpd = MinHttpd::new();
+        let mut min_httpd = MinHttpd::with_logger(|_, content| { dbg!(content); });
         min_httpd.route_fn("/hello", example_handler);
         min_httpd.route_fn("/error", example_500_handler);
         if let Err(e) = min_httpd.serve(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 3080)) {

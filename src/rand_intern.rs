@@ -1,4 +1,4 @@
-#![cfg_attr(test, allow(dead_code))]
+#![allow(unused)]
 
 use std::sync::atomic::{AtomicBool, AtomicU64};
 use std::sync::atomic::Ordering::SeqCst;
@@ -33,7 +33,6 @@ pub fn random() -> u64 {
     ).unwrap()
 }
 
-#[cfg(any(feature = "rand", test))]
 pub fn random_string(count: usize) -> String {
     let mut ret: Vec<u8> = Vec::with_capacity(count);
     for _ in 0..count {
@@ -53,4 +52,17 @@ pub fn random_string_lossy(count: usize) -> String {
         ret.push((random() % 95 + 31) as u8);
     }
     String::from_utf8_lossy(&ret).to_string()
+}
+
+#[cfg(test)]
+mod test {
+    #[test]
+    fn test_rand() {
+        eprintln!(
+            "3d100 = ({}, {}, {})",
+            super::random() % 100 + 1,
+            super::random() % 100 + 1,
+            super::random() % 100 + 1
+        );
+    }
 }
