@@ -243,6 +243,18 @@ impl TryInto<String> for Value {
     }
 }
 
+impl<'a> TryInto<&'a str> for &'a Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<&'a str, Self::Error> {
+        if let Value::String(s) = self {
+            Ok(s)
+        } else {
+            Err(format!("{:?} is not a string", self))
+        }
+    }
+}
+
 impl TryInto<Vec<Value>> for Value {
     type Error = String;
 
@@ -255,10 +267,58 @@ impl TryInto<Vec<Value>> for Value {
     }
 }
 
+impl<'a> TryInto<&'a [Value]> for &'a Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<&'a [Value], Self::Error> {
+        if let Value::Array(a) = self {
+            Ok(a)
+        } else {
+            Err(format!("{:?} is not an array", self))
+        }
+    }
+}
+
+impl<'a> TryInto<&'a mut [Value]> for &'a mut Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<&'a mut [Value], Self::Error> {
+        if let Value::Array(a) = self {
+            Ok(a)
+        } else {
+            Err(format!("{:?} is not an array", self))
+        }
+    }
+}
+
 impl TryInto<HashMap<String, Value>> for Value {
     type Error = String;
 
     fn try_into(self) -> Result<HashMap<String, Value>, Self::Error> {
+        if let Value::Object(o) = self {
+            Ok(o)
+        } else {
+            Err(format!("{:?} is not an object", self))
+        }
+    }
+}
+
+impl<'a> TryInto<&'a HashMap<String, Value>> for &'a Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<&'a HashMap<String, Value>, Self::Error> {
+        if let Value::Object(o) = self {
+            Ok(o)
+        } else {
+            Err(format!("{:?} is not an object", self))
+        }
+    }
+}
+
+impl<'a> TryInto<&'a mut HashMap<String, Value>> for &'a mut Value {
+    type Error = String;
+
+    fn try_into(self) -> Result<&'a mut HashMap<String, Value>, Self::Error> {
         if let Value::Object(o) = self {
             Ok(o)
         } else {
