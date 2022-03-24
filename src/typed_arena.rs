@@ -65,12 +65,12 @@ impl<T> Copy for ArenaPtr<T> {}
 
 impl<T> ArenaPtr<T> {
     pub fn get<'a>(&self, arena: &'a impl IntoArenaPtr) -> &'a T {
-        assert_eq!(self.from_arena, IntoArenaPtr::into(arena));
+        assert_eq!(self.from_arena, unsafe { IntoArenaPtr::into(arena) });
         unsafe { &*self.ptr }
     }
 
     pub fn get_mut<'a>(&self, arena: &'a mut impl IntoArenaPtr) -> &'a mut T {
-        assert_eq!(self.from_arena, IntoArenaPtr::into(arena));
+        assert_eq!(self.from_arena, unsafe { IntoArenaPtr::into(arena) });
         unsafe { &mut *self.ptr }
     }
 
@@ -86,12 +86,26 @@ impl<T> ArenaPtr<T> {
         &mut *self.ptr
     }
 
+    /// This function does *exactly the same thing* as `get_unchecked`, but not marked `unsafe`.
+    ///
+    /// # Warning
+    ///
+    /// This function is deliberately *unsound*. It will be enabled only if you did not appoint
+    /// `strict-sound` feature. You can use this "tricky" function to write less `unsafe`, but
+    /// at your own risk.
     #[cfg(not(feature = "strict-sound"))]
     #[cfg_attr(not(debug_assertions), inline(always))]
     pub fn get_tricky<'a>(&self, arena: &'a impl IntoArenaPtr) -> &'a T {
         unsafe { self.get_unchecked(arena) }
     }
 
+    /// This function does *exactly the same thing* as `get_unchecked_mut`, but not marked `unsafe`.
+    ///
+    /// # Warning
+    ///
+    /// This function is deliberately *unsound*. It will be enabled only if you did not appoint
+    /// `strict-sound` feature. You can use this "tricky" function to write less `unsafe`, but
+    /// at your own risk.
     #[cfg(not(feature = "strict-sound"))]
     #[cfg_attr(not(debug_assertions), inline(always))]
     pub fn get_tricky_mut<'a>(&self, arena: &'a mut impl IntoArenaPtr) -> &'a mut T {
@@ -99,9 +113,13 @@ impl<T> ArenaPtr<T> {
     }
 }
 
-pub trait IntoArenaPtr {
+/// An internal trait used for implementing some kind of "function overloading".
+///
+/// # Warning
+/// Do not `impl` this trait at downstream crates. That's meaningless, and may cause bugs.
+pub unsafe trait IntoArenaPtr {
     #[inline(always)]
-    fn into(&self) -> *const () {
+    unsafe fn into(&self) -> *const () {
         self as *const _ as *const ()
     }
 }
@@ -135,7 +153,7 @@ impl<T, const DEBRIS_SIZE: usize> TypedArena<T, DEBRIS_SIZE> {
     }
 }
 
-impl<T, const DEBRIS_SIZE: usize> IntoArenaPtr for TypedArena<T, DEBRIS_SIZE> {}
+unsafe impl<T, const DEBRIS_SIZE: usize> IntoArenaPtr for TypedArena<T, DEBRIS_SIZE> {}
 
 #[cfg(test)]
 mod test {
