@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use std::borrow::Borrow;
+use std::collections::{BTreeMap, HashMap};
 use std::convert::TryInto;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -66,6 +67,130 @@ impl Value {
             true
         } else {
             false
+        }
+    }
+}
+
+impl From<bool> for Value {
+    fn from(b: bool) -> Self {
+        Value::Bool(b)
+    }
+}
+
+impl From<i64> for Value {
+    fn from(i: i64) -> Self {
+        Value::Int(i)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(f: f64) -> Self {
+        Value::Float(f)
+    }
+}
+
+impl From<String> for Value {
+    fn from(s: String) -> Self {
+        Value::String(s)
+    }
+}
+
+impl<T> From<Vec<T>> for Value
+    where T: Into<Value>
+{
+    fn from(v: Vec<T>) -> Self {
+        Value::Array(
+            v.into_iter()
+                .map(|x| x.into())
+                .collect()
+        )
+    }
+}
+
+impl<T> From<&[T]> for Value
+    where T: Clone + Into<Value>
+{
+    fn from(arr: &[T]) -> Self {
+        Value::Array(
+            arr.iter()
+                .map(|x| x.clone().into())
+                .collect()
+        )
+    }
+}
+
+impl<S, T> From<HashMap<S, T>> for Value
+    where S: Into<String>,
+          T: Into<Value>
+{
+    fn from(m: HashMap<S, T>) -> Self {
+        Value::Object(
+            m.into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect()
+        )
+    }
+}
+
+impl<S, T> From<&HashMap<S, T>> for Value
+    where S: ToString,
+          T: Clone + Into<Value>
+{
+    fn from(m: &HashMap<S, T>) -> Self {
+        Value::Object(
+            m.iter()
+                .map(|(k, v)| (k.to_string(), v.clone().into()))
+                .collect()
+        )
+    }
+}
+
+impl<S, T> From<BTreeMap<S, T>> for Value
+    where S: Into<String>,
+          T: Into<Value>
+{
+    fn from(m: BTreeMap<S, T>) -> Self {
+        Value::Object(
+            m.into_iter()
+                .map(|(k, v)| (k.into(), v.into()))
+                .collect()
+        )
+    }
+}
+
+impl<S, T> From<&BTreeMap<S, T>> for Value
+    where S: ToString,
+          T: Clone + Into<Value>
+{
+    fn from(m: &BTreeMap<S, T>) -> Self {
+        Value::Object(
+            m.iter()
+                .map(|(k, v)| (k.to_string(), v.clone().into()))
+                .collect()
+        )
+    }
+}
+
+impl<S, T> From<&[(S, T)]> for Value
+    where S: Borrow<str>,
+          T: Clone + Into<Value>
+{
+    fn from(pairs: &[(S, T)]) -> Self {
+        Value::Object(
+            pairs.iter()
+                .map(|(k, v)| (k.borrow().to_string(), v.clone().into()))
+                .collect()
+        )
+    }
+}
+
+impl<T> From<Option<T>> for Value
+    where T: Into<Value>
+{
+    fn from(opt: Option<T>) -> Self {
+        match opt {
+            Some(v) => v.into(),
+            None => Value::Nil,
         }
     }
 }
