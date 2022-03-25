@@ -89,6 +89,12 @@ impl From<f64> for Value {
     }
 }
 
+impl From<&str> for Value {
+    fn from(s: &str) -> Self {
+        Value::String(s.to_string())
+    }
+}
+
 impl From<String> for Value {
     fn from(s: String) -> Self {
         Value::String(s)
