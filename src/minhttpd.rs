@@ -80,14 +80,14 @@ impl MinHttpd {
                 &format!("[MIN-HTTPD/{}] Accepted connection from: {}", request_id, addr)
             );
 
-            self.handle_connection(stream, request_id);
+            self.handle_connection(stream, addr.ip().to_string(), request_id);
         }
     }
 
-    fn handle_connection(&self, stream: TcpStream, request_id: u64) {
+    fn handle_connection(&self, stream: TcpStream, remote_addr: String, request_id: u64) {
         let unsafe_self: &'static Self = unsafe { std::mem::transmute::<&'_ _, &'static _>(self) };
         thread::spawn(move || {
-            match Self::handle_connection_impl(unsafe_self, stream, request_id) {
+            match Self::handle_connection_impl(unsafe_self, stream, remote_addr, request_id) {
                 Ok(_) => {},
                 Err(e) => unsafe_self.log(
                     HttpLogLevel::Error,
@@ -100,6 +100,7 @@ impl MinHttpd {
     fn handle_connection_impl(
         &self,
         stream: TcpStream,
+        remote_addr: String,
         request_id: u64
     ) -> Result<(), Box<dyn Error>> {
         let mut reader: BufReader<&TcpStream> = BufReader::new(&stream);
@@ -183,6 +184,7 @@ impl MinHttpd {
                 parts[1].to_lowercase().to_string()
             );
         }
+        headers.insert("X-47-Remote-Addr".to_string(), remote_addr);
 
         let body: Option<Vec<u8>> = if headers.contains_key("content-length") {
             let content_length: usize = headers["content-length"].parse()?;
