@@ -16,11 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install rust nightly
-      run: rustup install nightly
-    - name: Install miri
-      run: rustup component add miri --toolchain nightly
+    - name: Install rust nightly with miri
+      run: rustup toolchain install nightly --component miri
     - name: Install xargo
       run: cargo +nightly install xargo
     - name: Run tests
-      run: make test_all_no_miri_async
+      run: make test_all
