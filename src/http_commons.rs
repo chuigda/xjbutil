@@ -63,7 +63,7 @@ impl HttpResponseBuilder {
     }
 
     pub fn set_payload(mut self, payload: impl Into<String>) -> Self {
-        self.payload = Some(payload.to_string().into_bytes());
+        self.payload = Some(payload.into().into_bytes());
         self
     }
 
