@@ -8,11 +8,19 @@ pub type HttpBody = Option<String>;
 pub struct HttpResponse {
     pub code: u16,
     pub headers: Vec<(String, String)>,
-    pub payload: Option<String>
+    pub payload: Option<Vec<u8>>
 }
 
 impl HttpResponse {
     pub fn new(code: u16, headers: Vec<(String, String)>, payload: Option<String>) -> Self {
+        Self {
+            code,
+            headers,
+            payload: payload.map(String::into_bytes)
+        }
+    }
+
+    pub fn new_raw(code: u16, headers: Vec<(String, String)>, payload: Option<Vec<u8>>) -> Self {
         Self {
             code,
             headers,
@@ -56,6 +64,11 @@ impl HttpResponseBuilder {
 
     pub fn set_payload(mut self, payload: impl Into<String>) -> Self {
         self.payload = Some(payload.into());
+        self
+    }
+
+    pub fn set_payload_raw(mut self, payload: impl Into<Vec<u8>>) -> Self {
+        self.payload = Some(String::from_utf8(payload.into()).unwrap());
         self
     }
 
