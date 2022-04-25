@@ -250,7 +250,7 @@ impl MinHttpd {
             if let Some(payload) = response.payload {
                 write!(writer, "Content-Length: {}\r\n", payload.len())?;
                 write!(writer, "\r\n")?;
-                writer.write_all(payload.as_bytes())?;
+                writer.write_all(&payload)?;
             } else {
                 write!(writer, "\r\n")?;
             }
