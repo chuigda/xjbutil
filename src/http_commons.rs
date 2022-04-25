@@ -48,7 +48,7 @@ impl HttpResponse {
 pub struct HttpResponseBuilder {
     code: u16,
     headers: Vec<(String, String)>,
-    payload: Option<String>
+    payload: Option<Vec<u8>>
 }
 
 impl HttpResponseBuilder {
@@ -63,17 +63,17 @@ impl HttpResponseBuilder {
     }
 
     pub fn set_payload(mut self, payload: impl Into<String>) -> Self {
-        self.payload = Some(payload.into());
+        self.payload = Some(payload.to_string().into_bytes());
         self
     }
 
     pub fn set_payload_raw(mut self, payload: impl Into<Vec<u8>>) -> Self {
-        self.payload = Some(String::from_utf8(payload.into()).unwrap());
+        self.payload = Some(payload.into());
         self
     }
 
     pub fn build(self) -> HttpResponse {
-        HttpResponse::new(self.code, self.headers, self.payload)
+        HttpResponse::new_raw(self.code, self.headers, self.payload)
     }
 }
 
