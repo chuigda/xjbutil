@@ -21,4 +21,4 @@ jobs:
     - name: Install xargo
       run: cargo +nightly install xargo
     - name: Run tests
-      run: make test_all
+      run: make test_all_no_miri_async

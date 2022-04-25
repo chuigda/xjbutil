@@ -120,7 +120,7 @@ impl MinHttpd {
         let method: String = parts[0].to_lowercase();
         let version: String = parts[2].to_lowercase();
 
-        if method != "get" && parts[0] != "post" {
+        if method != "get" && method != "post" {
             self.log(
                 HttpLogLevel::Error,
                 &format!("[MIN-HTTPD/{}] Invalid HTTP method: {}", request_id, parts[0])
