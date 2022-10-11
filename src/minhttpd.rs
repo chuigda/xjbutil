@@ -13,13 +13,13 @@ pub use crate::http_commons::http_code_describe;
 const HTTP_404_STRING: &'static str = include_str!("../resc/http_404.html");
 
 pub type HttpHandler = Box<
-    dyn Fn(HttpHeaders, HttpParams, HttpBody) -> Result<HttpResponse, Box<dyn Error>>
+    dyn Fn(HttpUri, HttpHeaders, HttpParams, HttpBody) -> Result<HttpResponse, Box<dyn Error>>
         + Send
         + Sync
         + 'static
 >;
 
-type HttpHandlerFn = fn(HttpHeaders, HttpParams, HttpBody) -> Result<HttpResponse, Box<dyn Error>>;
+type HttpHandlerFn = fn(HttpUri, HttpHeaders, HttpParams, HttpBody) -> Result<HttpResponse, Box<dyn Error>>;
 
 #[derive(Clone, Copy, Eq, Ord, PartialEq, PartialOrd)]
 pub enum HttpLogLevel {
@@ -29,7 +29,7 @@ pub enum HttpLogLevel {
 pub type HttpLogger = fn(level: HttpLogLevel, info: &str) -> ();
 
 pub struct MinHttpd {
-    handlers: HashMap<HttpUri, HttpHandler>,
+    handlers: Vec<(HttpUri, HttpHandler)>,
     logger: Option<HttpLogger>,
     request_counter: AtomicU64
 }
@@ -37,7 +37,7 @@ pub struct MinHttpd {
 impl MinHttpd {
     pub fn new() -> Self {
         Self {
-            handlers: HashMap::new(),
+            handlers: Vec::new(),
             logger: None,
             request_counter: AtomicU64::new(0)
         }
@@ -45,29 +45,32 @@ impl MinHttpd {
 
     pub fn with_logger(logger: HttpLogger) -> Self {
         Self {
-            handlers: HashMap::new(),
+            handlers: Vec::new(),
             logger: Some(logger),
             request_counter: AtomicU64::new(0)
         }
     }
 
     pub fn route(&mut self, uri: &str, handler: HttpHandler) {
-        self.handlers.insert(uri.to_string(), handler);
+        self.handlers.push((uri.to_string(), handler));
     }
 
     pub fn route_fn(&mut self, uri: &str, handler_fn: HttpHandlerFn) {
-        self.handlers.insert(uri.to_string(), Box::new(handler_fn));
+        self.handlers.push((uri.to_string(), Box::new(handler_fn)));
     }
 
     pub fn route_static(&mut self, uri: &str, content_type: &str, content: String) {
         let content_type: String = content_type.to_string();
-        self.handlers.insert(uri.to_string(), Box::new(move |_, _, _| {
-            Ok(HttpResponse::new(
-                200,
-                vec![("Content-Type".to_string(), content_type.clone())],
-                Some(content.clone()))
-            )
-        }));
+        self.handlers.push((
+            uri.to_string(),
+            Box::new(move |_, _, _, _| {
+                Ok(HttpResponse::new(
+                    200,
+                    vec![("Content-Type".to_string(), content_type.clone())],
+                    Some(content.clone()))
+                )
+            })
+        ));
     }
 
     pub fn serve(&self, addr: SocketAddrV4) -> Result<Infallible, Box<dyn Error>> {
@@ -195,9 +198,11 @@ impl MinHttpd {
             None
         };
 
-        let handler: Option<&HttpHandler> = self.handlers.get(&uri);
+        let handler: Option<&(HttpUri, HttpHandler)> =
+            self.handlers.iter().find(|h| uri.starts_with(&h.0));
         if let Some(handler) = handler {
-            let result: Result<HttpResponse, Box<dyn Error>> = handler(
+            let result: Result<HttpResponse, Box<dyn Error>> = (handler.1)(
+                uri.to_string(),
                 headers,
                 params,
                 body.map(|b| String::from_utf8_lossy(b.as_ref()).to_string()),
@@ -291,12 +296,13 @@ mod test {
     use std::error::Error;
     use std::net::{Ipv4Addr, SocketAddrV4};
 
-    use crate::minhttpd::{HttpResponse, MinHttpd};
+    use crate::minhttpd::{HttpUri, HttpResponse, MinHttpd};
 
     #[test]
     #[ignore]
     fn test_min_httpd() {
         fn example_handler(
+            _uri: HttpUri,
             _headers: HashMap<String, String>,
             params: HashMap<String, String>,
             _body: Option<String>,
@@ -312,6 +318,7 @@ mod test {
         }
 
         fn example_500_handler(
+            _uri: HttpUri,
             _headers: HashMap<String, String>,
             _params: HashMap<String, String>,
             _body: Option<String>,

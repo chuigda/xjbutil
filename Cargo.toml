@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.8.0-DELTA"
+version = "0.8.0"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -9,11 +9,11 @@ repository = "https://github.com/Pr47/xjbutil"
 license = "MIT"
 
 [dependencies]
-unchecked_unwrap = "3"
+unchecked_unwrap = "4"
 
 async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
-monoio = { optional = true, version = "0.0.3", default-features = false }
+monoio = { optional = true, version = "0.0.8", default-features = false }
 pollster = { optional = true, version = "0.2" }
 serde = { optional = true, version = "1" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
