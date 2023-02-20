@@ -43,7 +43,7 @@
 #[cfg(all(feature = "provenance", miri))]
 #[macro_export] macro_rules! provenance_ignore {
     ($input:expr) => {
-        { let _ = expr.expose_addr(); }
+        { let _ = $input.expose_addr(); }
     }
 }
 
