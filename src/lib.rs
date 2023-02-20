@@ -11,6 +11,11 @@ compile_error!(
     "appointing concrete async implementation without appointing `async` feature is meaningless"
 );
 
+#[cfg(all(feature = "provenance", not(feature = "makro")))]
+compile_error!(
+    "enabling `provenance` feature without `makro` feature is meaningless"
+);
+
 #[cfg(all(feature = "strict-sound", feature = "wide_ptr"))]
 compile_error!(
     "`wide_ptr` feature is actually UB-rich, it cannot be used soundly"

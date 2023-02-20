@@ -40,6 +40,18 @@
     };
 }
 
+#[cfg(all(feature = "provenance", miri))]
+#[macro_export] macro_rules! provenance_ignore {
+    ($input:expr) => {
+        { let _ = expr.expose_addr(); }
+    }
+}
+
+#[cfg(all(feature = "provenance", not(miri)))]
+#[macro_export] macro_rules! provenance_ignore {
+    ($input:expr) => {}
+}
+
 #[cfg(test)]
 mod test {
     #[test]
