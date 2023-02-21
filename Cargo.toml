@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.9.0-ALFA"
+version = "0.9.0-BRAVO"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"
@@ -13,8 +13,8 @@ unchecked_unwrap = "4"
 
 async-std = { optional = true, version = "1" }
 futures = { optional = true, version = "0.3", default-features = false, features = ["alloc"] }
-monoio = { optional = true, version = "0.0.8", default-features = false }
-pollster = { optional = true, version = "0.2" }
+monoio = { optional = true, version = "0.0.9", default-features = false }
+pollster = { optional = true, version = "0.3" }
 serde = { optional = true, version = "1" }
 tokio = { optional = true, version = "1", features = ["rt", "sync", "time"] }
 

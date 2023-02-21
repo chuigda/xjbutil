@@ -45,7 +45,7 @@
     ($input:expr) => {
         {
             let ptr = $input;
-            let _ = $input.expose_addr();
+            let _ = ptr.expose_addr();
             ptr
         }
     }
