@@ -215,16 +215,16 @@ impl<NF, T: Copy> FlexArray<NF, T> {
     }
 
     pub fn as_ptr(&self) -> FLAPtr<NF, T> {
-        let raw: *const FLABuffer<NF, T> = self.raw.as_ptr();
+        let raw: *mut FLABuffer<NF, T> = self.raw.as_ptr();
         unsafe {
             let len: usize = (*raw).len;
             let ptr_fixed: NonNull<NF> =
-                NonNull::new_unchecked(&(*raw).fixed as *const _ as *mut _);
+                NonNull::new_unchecked(&mut (*raw).fixed as *mut _);
             let ptr_flex = if len == 0 {
                 NonNull::new_unchecked(&mut [] as *mut [T])
             } else {
                 NonNull::new_unchecked(slice_from_raw_parts_mut(
-                    addr_of!((*(raw as *const FLABufferHelper<NF, T>)).placeholder) as *mut _,
+                    addr_of_mut!((*(raw as *mut FLABufferHelper<NF, T>)).placeholder),
                     len
                 ))
             };

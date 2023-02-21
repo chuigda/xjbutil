@@ -240,7 +240,7 @@ impl MinHttpd {
 
             response.add_header("Connection", "close");
             if !response.has_header("Server") {
-                response.add_header("Server", "xjbutil/0.8 rhttpd");
+                response.add_header("Server", "xjbutil/0.9 rhttpd");
             }
 
             write!(
