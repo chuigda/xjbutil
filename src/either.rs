@@ -3,24 +3,10 @@
 //! This structure is in effect isomorphic with `Result`, but does not have certain traits
 //! implemented. Personally I think this is the better choice for expressing something which is not
 //! really a `Result`.
-
-use std::fmt::{Debug, Formatter};
-
+#[derive(Debug, Clone)]
 pub enum Either<T1, T2> {
     Left(T1),
     Right(T2)
-}
-
-impl<E1, E2> Debug for Either<E1, E2>
-    where E1: Debug,
-          E2: Debug
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match &self {
-            Either::Left(left) => f.debug_tuple("Either::Left").field(left).finish(),
-            Either::Right(right) => f.debug_tuple("Either::Right").field(right).finish()
-        }
-    }
 }
 
 #[cfg(test)]
@@ -45,5 +31,12 @@ mod test {
         } else {
             unreachable!();
         }
+    }
+
+    #[test]
+    fn test_either_no_debug_clone() {
+        struct Shit(String, i32);
+
+        let _x : Either<Shit, String> = Either::Right("Fuck".into());
     }
 }
