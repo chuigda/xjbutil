@@ -1,6 +1,6 @@
 [package]
 name = "xjbutil"
-version = "0.9.0-DELTA"
+version = "0.9.0-ECHO"
 edition = "2018"
 authors = ["ICEY <icey@icey.tech>"]
 description = "A xjbly created utility library for my own use"

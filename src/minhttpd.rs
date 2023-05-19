@@ -150,17 +150,23 @@ impl MinHttpd {
             let mut params: HashMap<String, String> = HashMap::new();
             for param in uri_parts[1].split("&") {
                 let param_parts: Vec<&str> = param.split("=").collect::<Vec<_>>();
-                if param_parts.len() != 2 {
+                if param_parts.len() == 1 {
+                    params.insert(
+                        param_parts[0].to_string(),
+                        "".to_string()
+                    );
+                } else if param_parts.len() == 2 {
+                    params.insert(
+                        param_parts[0].to_string(),
+                        param_parts[1].to_string()
+                    );
+                } else {
                     self.log(
                         HttpLogLevel::Error,
                         &format!("[MIN-HTTPD/{}] Invalid HTTP parameter: {}", request_id, param)
                     );
                     return Ok(());
                 }
-                params.insert(
-                    param_parts[0].to_string(),
-                    param_parts[1].to_string()
-                );
             }
             params
         } else {
