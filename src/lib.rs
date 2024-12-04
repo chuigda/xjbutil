@@ -1,3 +1,16 @@
+#[cfg(target_arch = "wasm32")]
+compile_error!(r#"You fucking WebAssembly kiddies go fuck yourself
+
+Just in order to be compatible with your fucking browser platform, the crate winit had to
+change their very conventional poll-based API to a fucking state machine which is completely
+anti-Rust pattern.
+
+And when I was developing a gltf conversion program, a fucking wasm-bindgen crate
+unexpectedfully occurred in my dependency list and fuckingly requires fucking nightly Rust.
+And when I see cargo tree that's in my depedency's dependency's dependency's dependency.
+
+So fuck you webassembly kiddes. Curse you for your fucking platform. Go to the hell."#);
+
 #[cfg(all(
     any(
         feature = "async-astd",
