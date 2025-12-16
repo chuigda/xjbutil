@@ -86,12 +86,18 @@ impl<T: TrivialInit> ZeroVec<T> {
         self.len
     }
 
-    pub fn get_unchecked(&self, idx: usize) -> &T {
-        unsafe { &*self.raw.ptr.as_ptr().add(idx) }
+    /// # Safety
+    ///
+    /// Calling this method with an out-of-bounds index is undefined behavior.
+    pub unsafe fn get_unchecked(&self, idx: usize) -> &T {
+        &*self.raw.ptr.as_ptr().add(idx)
     }
 
-    pub fn get_unchecked_mut(&mut self, idx: usize) -> &mut T {
-        unsafe { &mut *self.raw.ptr.as_ptr().add(idx) }
+    /// # Safety
+    ///
+    /// Calling this method with an out-of-bounds index is undefined behavior.
+    pub unsafe fn get_unchecked_mut(&mut self, idx: usize) -> &mut T {
+        &mut *self.raw.ptr.as_ptr().add(idx)
     }
 }
 
@@ -136,3 +142,41 @@ unsafe impl<T1, T2> TrivialInit for (T1, T2) where T1: TrivialInit, T2: TrivialI
 
 unsafe impl<T1, T2, T3> TrivialInit for (T1, T2, T3)
     where T1: TrivialInit, T2: TrivialInit, T3: TrivialInit {}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_safe_access() {
+        let mut vec: ZeroVec<i32> = ZeroVec::new();
+        vec.resize(10);
+        
+        // Safe access through Index trait
+        vec[0] = 42;
+        assert_eq!(vec[0], 42);
+        
+        // Safe access through Deref
+        assert_eq!(vec.len(), 10);
+        vec[5] = 100;
+        assert_eq!(vec[5], 100);
+    }
+    
+    #[test]
+    fn test_unsafe_get_unchecked() {
+        let mut vec: ZeroVec<i32> = ZeroVec::new();
+        vec.resize(10);
+        vec[3] = 99;
+        
+        // Unsafe access requires unsafe block
+        unsafe {
+            let val = vec.get_unchecked(3);
+            assert_eq!(*val, 99);
+            
+            let val_mut = vec.get_unchecked_mut(3);
+            *val_mut = 101;
+        }
+        
+        assert_eq!(vec[3], 101);
+    }
+}
